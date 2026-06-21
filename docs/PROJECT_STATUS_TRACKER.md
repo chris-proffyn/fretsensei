@@ -51,7 +51,7 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 - [x] 0.6 Add `package.json`, TypeScript config, and npm workspaces
 - [x] 0.7 Configure CI pipeline (install, typecheck, test, build)
 - [x] 0.8 Add HTML prototype to repo for reference (`docs/project/fretsensei-fretboard-visualiser.html`)
-- [ ] 0.9 Push initial scaffold to GitHub
+- [x] 0.9 Push initial scaffold to GitHub
 
 ---
 
@@ -164,3 +164,4 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 | 2026-06-21 | Initial tracker created — pre-build phase, all tasks unchecked |
 | 2026-06-21 | Project bootstrap complete — monorepo scaffold, CI, git init; 0.1–0.7 done |
 | 2026-06-21 | HTML prototype confirmed at `docs/project/fretsensei-fretboard-visualiser.html`; 0.8 done |
+| 2026-06-21 | Initial commit pushed to GitHub — bootstrap complete (0.1–0.9) |
