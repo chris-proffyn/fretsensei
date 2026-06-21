@@ -1,0 +1,17 @@
+:root {
+  --bg: #101317;
+  --panel: #171b21;
+  --panel-soft: #202631;
+  --text: #f4f7fb;
+  --muted: #9ba7b6;
+  --line: #384250;
+  --string: #c3cad4;
+  --fret: #6f7784;
+  --nut: #d8dde6;
+  --root: #ffb020;
+  --scale: #4da3ff;
+  --key-note: #58c472;
+  --blue-note: #4da3ff;
+  --outside: #2a3039;
+  --shadow: rgba(0, 0, 0, 0.32);
+}

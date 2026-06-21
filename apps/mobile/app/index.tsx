@@ -1,59 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { PACKAGE_NAME as uiPackage } from '@fretsensei/ui';
-import { PACKAGE_NAME as utilsPackage } from '@fretsensei/utils';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { VisualiserScreen } from '../src/components/VisualiserScreen';
+import { usePlaybackController } from '../src/hooks/usePlaybackController';
+import { useVisualiserState } from '../src/hooks/useVisualiserState';
+import { colors } from '../src/theme/tokens';
 
 export default function HomeScreen() {
+  const { state, viewModel, dispatch } = useVisualiserState();
+  const playback = usePlaybackController({ state, viewModel, dispatch });
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.eyebrow}>FretSensei</Text>
-      <Text style={styles.title}>Guitar fretboard visualiser</Text>
-      <Text style={styles.subtitle}>
-        Explore scales, modes, and fretboard patterns across a standard-tuned
-        24-fret guitar neck.
-      </Text>
-      <Text style={styles.status}>
-        Bootstrap complete — visualiser UI coming in Milestone 4.
-      </Text>
-      <Text style={styles.meta}>
-        Packages: {uiPackage}, {utilsPackage}
-      </Text>
-    </View>
+    <SafeAreaView style={styles.screen} edges={['top', 'bottom', 'left', 'right']}>
+      <VisualiserScreen
+        state={state}
+        viewModel={viewModel}
+        dispatch={dispatch}
+        playback={playback}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#0f1115',
-    padding: 24,
-    justifyContent: 'center',
-  },
-  eyebrow: {
-    color: '#f59e0b',
-    fontSize: 14,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  title: {
-    color: '#f5f5f5',
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  subtitle: {
-    color: '#a3a3a3',
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  status: {
-    color: '#737373',
-    fontSize: 15,
-    marginTop: 24,
-  },
-  meta: {
-    color: '#525252',
-    fontSize: 13,
-    marginTop: 8,
+    backgroundColor: colors.bg,
   },
 });

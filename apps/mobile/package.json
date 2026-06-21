@@ -5,28 +5,45 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "android:go": "expo start --android",
+    "ios": "expo run:ios",
+    "ios:go": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"lint: not configured yet\""
+    "test": "jest",
+    "smoke:ios": "node scripts/smoke-test.mjs ios",
+    "smoke:android": "node scripts/smoke-test.mjs android",
+    "generate:splash": "node scripts/generate-splash.mjs",
+    "lint": "echo \"lint: not configured yet\"",
+    "postinstall": "node scripts/patch-react-native-audio-api.mjs"
   },
   "dependencies": {
     "@fretsensei/ui": "*",
     "@fretsensei/utils": "*",
     "expo": "~52.0.28",
+    "expo-asset": "~11.0.5",
+    "expo-av": "~15.0.2",
     "expo-constants": "~17.0.5",
     "expo-linking": "~7.0.5",
     "expo-router": "~4.0.17",
+    "expo-screen-orientation": "~8.0.4",
+    "expo-splash-screen": "~0.29.24",
     "expo-status-bar": "~2.0.1",
     "react": "18.3.1",
     "react-native": "0.76.6",
+    "react-native-audio-api": "0.7.2",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.4.0"
+    "react-native-screens": "~4.4.0",
+    "semver": "^7.8.5"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@types/jest": "^29.5.14",
     "@types/react": "~18.3.18",
+    "jest": "^29.7.0",
+    "jest-expo": "~52.0.3",
+    "sharp": "^0.35.2",
     "typescript": "^5.7.3"
   }
 }

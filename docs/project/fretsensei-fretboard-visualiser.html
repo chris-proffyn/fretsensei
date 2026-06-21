@@ -1125,6 +1125,26 @@
 
     const MODES = [
       {
+        id: "minor-pentatonic",
+        name: "Minor Pentatonic",
+        shortName: "Minor Pentatonic",
+        intervals: [0, 3, 5, 7, 10],
+        degrees: ["1", "b3", "4", "5", "b7"],
+        blueNoteInterval: 6,
+        blueNoteDegree: "b5",
+        feel: "Classic blues, rock and minor five-note sound"
+      },
+      {
+        id: "major-pentatonic",
+        name: "Major Pentatonic",
+        shortName: "Major Pentatonic",
+        intervals: [0, 2, 4, 7, 9],
+        degrees: ["1", "2", "3", "5", "6"],
+        blueNoteInterval: 3,
+        blueNoteDegree: "b3",
+        feel: "Open, bright five-note major sound"
+      },
+      {
         id: "ionian",
         name: "Ionian / Major",
         shortName: "Ionian",
@@ -1171,26 +1191,6 @@
         intervals: [0, 2, 3, 5, 7, 8, 10],
         degrees: ["1", "2", "b3", "4", "5", "b6", "b7"],
         feel: "Natural minor sound"
-      },
-      {
-        id: "major-pentatonic",
-        name: "Major Pentatonic",
-        shortName: "Major Pentatonic",
-        intervals: [0, 2, 4, 7, 9],
-        degrees: ["1", "2", "3", "5", "6"],
-        blueNoteInterval: 3,
-        blueNoteDegree: "b3",
-        feel: "Open, bright five-note major sound"
-      },
-      {
-        id: "minor-pentatonic",
-        name: "Minor Pentatonic",
-        shortName: "Minor Pentatonic",
-        intervals: [0, 3, 5, 7, 10],
-        degrees: ["1", "b3", "4", "5", "b7"],
-        blueNoteInterval: 6,
-        blueNoteDegree: "b5",
-        feel: "Classic blues, rock and minor five-note sound"
       },
       {
         id: "locrian",
@@ -1303,7 +1303,7 @@
       "minor-pentatonic": {
         1: [0, 3],
         2: [3, 5],
-        3: [5, 8],
+        3: [4, 8],
         4: [7, 10],
         5: [10, 12]
       }

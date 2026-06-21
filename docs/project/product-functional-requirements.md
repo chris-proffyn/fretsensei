@@ -519,7 +519,7 @@ Minor pentatonic offsets:
 |---:|---|
 | 1 | 0 to 3 |
 | 2 | 3 to 5 |
-| 3 | 5 to 8 |
+| 3 | 4 to 8 |
 | 4 | 7 to 10 |
 | 5 | 10 to 12 |
 

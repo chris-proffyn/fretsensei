@@ -11,6 +11,8 @@
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "sync:brand": "node scripts/sync-brand-assets.mjs",
+    "generate:splash": "npm run generate:splash -w @fretsensei/mobile",
     "web": "npm run dev -w @fretsensei/web",
     "mobile": "npm run start -w @fretsensei/mobile"
   },
