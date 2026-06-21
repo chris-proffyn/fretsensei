@@ -1,0 +1,20 @@
+{
+  "name": "fretsensei",
+  "private": true,
+  "description": "Interactive guitar fretboard visualiser for learning scales and modes",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "web": "npm run dev -w @fretsensei/web",
+    "mobile": "npm run start -w @fretsensei/mobile"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

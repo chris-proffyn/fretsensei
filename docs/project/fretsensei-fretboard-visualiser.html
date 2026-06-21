@@ -1,0 +1,2619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FretSensei - Guitar Fretboard Visualiser</title>
+  <style>
+    :root {
+      --bg: #101317;
+      --panel: #171b21;
+      --panel-soft: #202631;
+      --text: #f4f7fb;
+      --muted: #9ba7b6;
+      --line: #384250;
+      --string: #c3cad4;
+      --fret: #6f7784;
+      --nut: #d8dde6;
+      --root: #ffb020;
+      --scale: #4da3ff;
+      --key-note: #58c472;
+      --blue-note: #4da3ff;
+      --outside: #2a3039;
+      --shadow: rgba(0, 0, 0, 0.32);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(77, 163, 255, 0.18), transparent 34rem),
+        radial-gradient(circle at top right, rgba(255, 176, 32, 0.12), transparent 32rem),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+    }
+
+    .hero {
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      color: var(--root);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 4.25rem);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    .subtitle {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 760px;
+      line-height: 1.55;
+    }
+
+    .controls {
+      background: rgba(23, 27, 33, 0.82);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 20px 60px var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .compact-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(190px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .key-block,
+    .mode-block {
+      grid-column: 1 / -1;
+    }
+
+    .control-block {
+      min-width: 0;
+    }
+
+    .position-control,
+    .options-row,
+    .legend {
+      grid-column: 1 / -1;
+    }
+
+    .options-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px 20px;
+      padding: 4px 2px 2px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      margin-top: 2px;
+    }
+
+    .position-control:not(.hidden) {
+      display: block;
+    }
+
+    .control-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .control-header label {
+      margin-bottom: 0;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .key-buttons,
+    .mode-buttons {
+      display: grid;
+      width: 100%;
+      gap: 7px;
+    }
+
+    .key-buttons {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .mode-buttons {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+
+    .key-button,
+    .mode-button,
+    .area-button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 13px;
+      font-size: 0.98rem;
+      font-weight: 800;
+      cursor: pointer;
+      min-width: 0;
+      width: 100%;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .mode-button {
+      font-size: 0.82rem;
+      padding: 9px 8px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .area-buttons {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      gap: 7px;
+      width: 100%;
+    }
+
+    .area-button {
+      font-size: 0.84rem;
+      padding: 9px 10px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .key-button:hover,
+    .mode-button:hover,
+    .area-button:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .key-button.active,
+    .mode-button.active,
+    .area-button.active {
+      background: var(--root);
+      color: #1a1000;
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 0 4px rgba(255, 176, 32, 0.14);
+    }
+
+    .mode-buttons {
+      gap: 7px;
+    }
+
+    .compact-controls .checkbox-row {
+      vertical-align: middle;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-bottom: 8px;
+    }
+
+    .second-label {
+      margin-top: 14px;
+    }
+
+    .label-hint {
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 0.78rem;
+      margin-left: 6px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .checkbox-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      margin-right: 14px;
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 650;
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .option-checkbox {
+      margin-top: 0;
+      margin-right: 0;
+    }
+
+    .compact-checkbox {
+      margin-top: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      white-space: nowrap;
+    }
+
+    .checkbox-row input {
+      accent-color: var(--root);
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-row:has(input:disabled) {
+      opacity: 0.38;
+      cursor: not-allowed;
+    }
+
+    .checkbox-row:has(input:disabled) input {
+      cursor: not-allowed;
+    }
+
+    select {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: 1rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--scale);
+      box-shadow: 0 0 0 4px rgba(77, 163, 255, 0.16);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .dot.root { background: var(--root); }
+    .dot.scale { background: var(--key-note); }
+    .dot.outside { background: var(--outside); border: 1px solid var(--line); }
+    .dot.blue-note-dot {
+      background: var(--blue-note);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 26px 0 18px;
+    }
+
+    .summary-card {
+      background: rgba(23, 27, 33, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .summary-card .value {
+      margin-top: 8px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .fretboard-card {
+      background: rgba(23, 27, 33, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 26px;
+      padding: 22px;
+      box-shadow: 0 24px 80px var(--shadow);
+      overflow: hidden;
+    }
+
+    .fret-window-control {
+      background: rgba(16, 19, 23, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .fret-window-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .fret-window-summary {
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 800;
+      margin-top: 5px;
+    }
+
+    .playback-control-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .bpm-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .bpm-control input,
+    .bpm-control select {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .bpm-control input {
+      width: 84px;
+    }
+
+    .bpm-control select {
+      min-width: 128px;
+      cursor: pointer;
+    }
+
+    .playback-direction-control {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .direction-button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .direction-button.active {
+      background: var(--root);
+      color: #1a1000;
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 0 3px rgba(255, 176, 32, 0.14);
+    }
+
+    .repeat-control {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .fret-window-help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .fret-window-track {
+      min-width: 1220px;
+      position: relative;
+      margin-bottom: 12px;
+      user-select: none;
+    }
+
+    .fret-window-track-grid {
+      display: grid;
+      grid-template-columns: 84px repeat(25, minmax(42px, 1fr));
+      height: 42px;
+      background: rgba(16, 19, 23, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .fret-window-track-spacer,
+    .fret-window-track-cell {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      position: relative;
+    }
+
+    .fret-window-track-spacer {
+      background: rgba(8, 11, 15, 0.8);
+    }
+
+    .fret-window-track-cell {
+      background: rgba(28, 34, 42, 0.5);
+      cursor: pointer;
+    }
+
+    .fret-window-track-cell:hover {
+      background: rgba(36, 43, 52, 0.8);
+    }
+
+    .fret-window-thumb {
+      appearance: none;
+      text-decoration: none;
+      position: absolute;
+      top: 3px;
+      height: 36px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      background: rgba(255, 176, 32, 0.92);
+      color: #1a1000;
+      font-size: 0.84rem;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      cursor: grab;
+      z-index: 2;
+      box-shadow: 0 0 0 3px rgba(255, 176, 32, 0.14);
+      transition: box-shadow 120ms ease;
+      white-space: nowrap;
+      overflow: hidden;
+      padding: 0 18px;
+      touch-action: none;
+    }
+
+    .fret-window-thumb.dragging,
+    .fret-window-thumb.resizing {
+      cursor: grabbing;
+      box-shadow: 0 0 0 5px rgba(255, 176, 32, 0.2);
+    }
+
+    .fret-window-thumb-label {
+      pointer-events: none;
+      position: relative;
+      z-index: 2;
+    }
+
+    .fret-window-resize-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 14px;
+      z-index: 3;
+      cursor: ew-resize;
+    }
+
+    .fret-window-resize-handle.left {
+      left: 0;
+      border-right: 1px solid rgba(26, 16, 0, 0.28);
+    }
+
+    .fret-window-resize-handle.right {
+      right: 0;
+      border-left: 1px solid rgba(26, 16, 0, 0.28);
+    }
+
+    .small-action-button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .small-action-button:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .small-action-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .fret-window-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .transport-controls {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .fret-focus-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.7fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .fret-focus-main {
+      min-width: 0;
+    }
+
+    .scale-map-card {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.025);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .scale-map {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .scale-map-item {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--panel-soft);
+      border-radius: 12px;
+      padding: 9px 6px;
+      text-align: center;
+    }
+
+    .scale-map-degree {
+      display: block;
+      color: var(--root);
+      font-size: 0.78rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .scale-map-note {
+      display: block;
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    @media (max-width: 900px) {
+      .fret-focus-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .play-button {
+      background: var(--root);
+      color: #1a1000;
+    }
+
+    .stop-button {
+      background: var(--panel-soft);
+      color: var(--text);
+    }
+
+    .note.playing {
+      transform: scale(1.16);
+      box-shadow: 0 0 0 5px rgba(255, 176, 32, 0.22);
+    }
+
+    .scroll-hint {
+      display: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    .fretboard-wrap {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .fretboard {
+      min-width: 1220px;
+      display: grid;
+      grid-template-columns: 84px repeat(25, minmax(42px, 1fr));
+      grid-template-rows: 32px repeat(6, 58px);
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(90deg, #241910, #53331d 42%, #241910);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .corner,
+    .fret-label,
+    .string-label {
+      background: rgba(16, 19, 23, 0.72);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .string-label {
+      justify-items: start;
+      padding-left: 18px;
+      color: var(--text);
+    }
+
+    .cell {
+      position: relative;
+      display: grid;
+      place-items: center;
+      border-right: 2px solid rgba(216, 221, 230, 0.28);
+    }
+
+    .cell.fret-0 {
+      border-right: 8px solid var(--nut);
+      background: rgba(0, 0, 0, 0.14);
+    }
+
+    .cell::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: var(--string-thickness);
+      transform: translateY(-50%);
+      background: linear-gradient(180deg, #f8fafc, var(--string));
+      box-shadow: 0 1px 2px rgba(0,0,0,0.45);
+      z-index: 1;
+    }
+
+    .note {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 0.84rem;
+      font-weight: 850;
+      position: relative;
+      z-index: 3;
+      background: var(--outside);
+      color: rgba(244, 247, 251, 0.48);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      line-height: 1;
+      text-align: center;
+    }
+
+    .note.both {
+      width: 40px;
+      height: 40px;
+      font-size: 0.72rem;
+      gap: 1px;
+    }
+
+    .note-name,
+    .interval-name {
+      display: block;
+    }
+
+    .interval-name {
+      font-size: 0.72em;
+      opacity: 0.78;
+    }
+
+    .note.scale {
+      background: var(--key-note);
+      color: #06121f;
+      box-shadow: 0 0 0 4px rgba(88, 196, 114, 0.14);
+    }
+
+    .note.out-of-position {
+      background: rgba(42, 48, 57, 0.48);
+      color: rgba(244, 247, 251, 0.26);
+      border-style: dashed;
+      box-shadow: none;
+    }
+
+    .note.hidden-note {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .note.extended {
+      background: rgba(88, 196, 114, 0.86);
+      color: #06121f;
+      border: 2px dashed rgba(255, 255, 255, 0.65);
+      box-shadow: 0 0 0 4px rgba(88, 196, 114, 0.10);
+    }
+
+    .note.extended-root {
+      background: rgba(255, 176, 32, 0.82);
+      color: #1a1000;
+      border: 2px dashed rgba(255, 255, 255, 0.7);
+      box-shadow: 0 0 0 5px rgba(255, 176, 32, 0.12);
+    }
+
+    .note.blue-note {
+      background: var(--blue-note);
+      color: #06121f;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 0 0 4px rgba(77, 163, 255, 0.14);
+    }
+
+    .note.root {
+      background: var(--root);
+      color: #1a1000;
+      box-shadow: 0 0 0 5px rgba(255, 176, 32, 0.18);
+    }
+
+    .inlay {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .inlay.single {
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .inlay.double.top {
+      top: 35%;
+    }
+
+    .inlay.double.bottom {
+      top: 65%;
+    }
+
+    .fret-label.marker {
+      color: var(--text);
+    }
+
+    .future {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .pill {
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 999px;
+      padding: 9px 12px;
+    }
+
+
+    @media (min-width: 901px) and (max-width: 1180px) {
+      .area-buttons {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .compact-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .key-buttons {
+        grid-template-columns: repeat(7, minmax(38px, 1fr));
+      }
+
+      .mode-buttons {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .area-buttons {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .controls {
+        min-width: 0;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .scroll-hint {
+        display: block;
+      }
+
+      .fret-window-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .page {
+        padding: 24px 14px 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <section>
+        <div class="eyebrow">FretSensei</div>
+        <h1>Guitar fretboard visualiser</h1>
+        <p class="subtitle">
+          Select a key and mode to see every note across a 24-fret standard-tuned guitar. Choose full diatonic modes or pentatonic scales; root notes are highlighted separately, and interval labels adapt to the chosen sound. Pentatonic modes can optionally include the blue note.
+        </p>
+      </section>
+    </header>
+
+    <section class="controls compact-controls">
+      <div class="control-block key-block">
+        <div class="control-header">
+          <label>Key</label>
+          <label class="checkbox-row compact-checkbox">
+            <input type="checkbox" id="flatKeyToggle" />
+            <span>♭ Flat</span>
+          </label>
+        </div>
+        <div id="keyButtons" class="button-row key-buttons" role="group" aria-label="Choose key"></div>
+      </div>
+
+      <div class="control-block mode-block">
+        <label>Mode</label>
+        <div id="modeButtons" class="button-row mode-buttons" role="group" aria-label="Choose mode"></div>
+      </div>
+
+      <div class="options-row" aria-label="Display and pattern options">
+
+        <label class="checkbox-row option-checkbox">
+          <input type="checkbox" id="includeBlueNoteToggle" />
+          <span>Blue note</span>
+        </label>
+
+        <label class="checkbox-row option-checkbox">
+          <input type="checkbox" id="threeNotesPerStringToggle" />
+          <span>3 notes per string</span>
+        </label>
+
+        <label class="checkbox-row option-checkbox">
+          <input type="checkbox" id="extendedModalPatternToggle" />
+          <span>Extended pattern</span>
+        </label>
+
+        <label class="checkbox-row option-checkbox">
+          <input type="checkbox" id="showIntervalsToggle" />
+          <span>Scale degree</span>
+        </label>
+
+        <label class="checkbox-row option-checkbox">
+          <input type="checkbox" id="showOutsideNotesToggle" />
+          <span>Outside notes</span>
+        </label>
+      </div>
+
+
+        <div id="positionControl" class="position-control hidden">
+          <label for="positionSelect" class="second-label">Pentatonic position</label>
+          <select id="positionSelect">
+            <option value="all">All positions</option>
+            <option value="1">Position 1</option>
+            <option value="2">Position 2</option>
+            <option value="3">Position 3</option>
+            <option value="4">Position 4</option>
+            <option value="5">Position 5</option>
+          </select>
+
+
+        </div>
+
+        <div class="legend">
+          <span class="legend-item"><span class="dot root"></span> Root</span>
+          <span class="legend-item"><span class="dot scale"></span> In key</span>
+          <span class="legend-item"><span class="dot scale" style="border: 2px dashed rgba(255,255,255,0.7);"></span> Extended</span>
+          <span class="legend-item"><span class="dot blue-note-dot"></span> Blue note</span>
+          <span class="legend-item"><span class="dot outside"></span> Outside notes</span>
+        </div>
+    </section>
+
+    <div class="visually-hidden" aria-hidden="true">
+      <span id="selectedKey"></span>
+      <span id="scaleNotes"></span>
+      <span id="modeFormula"></span>
+      <span id="positionSummary"></span>
+    </div>
+
+<section class="fretboard-card">
+      <div id="fretWindowControl" class="fret-window-control">
+        <div class="fret-focus-grid">
+          <div class="fret-focus-main">
+            <div class="fret-window-header">
+              <div>
+                <label>Fretboard focus</label>
+                <div id="fretWindowSummary" class="fret-window-summary">Full neck</div>
+              </div>
+              <div class="fret-window-actions">
+                <button type="button" id="fullNeckButton" class="small-action-button">Full neck</button>
+              </div>
+            </div>
+
+            <div class="playback-control-row">
+              <div class="transport-controls">
+                <button type="button" id="playVisibleNotesButton" class="small-action-button play-button" disabled>Play</button>
+                <button type="button" id="stopPlaybackButton" class="small-action-button stop-button" disabled>Stop</button>
+              </div>
+
+              <label class="bpm-control" for="bpmInput">
+                <span>BPM</span>
+                <input type="number" id="bpmInput" min="40" max="220" step="1" value="90" />
+              </label>
+
+              <label class="bpm-control subdivision-control" for="subdivisionSelect">
+                <span>Subdivision</span>
+                <select id="subdivisionSelect">
+                  <option value="1">Quarter notes</option>
+                  <option value="2">8ths</option>
+                  <option value="3">8th triplets</option>
+                  <option value="4">16ths</option>
+                </select>
+              </label>
+
+              <div class="playback-direction-control" role="group" aria-label="Playback direction">
+                <button type="button" class="direction-button active" data-direction="up" aria-pressed="true">Up</button>
+                <button type="button" class="direction-button" data-direction="down" aria-pressed="false">Down</button>
+                <button type="button" class="direction-button" data-direction="up-down" aria-pressed="false">Up &amp; Down</button>
+              </div>
+
+              <label class="checkbox-row repeat-control">
+                <input type="checkbox" id="repeatPlaybackToggle" />
+                <span>Repeat</span>
+              </label>
+            </div>
+
+            <p class="fret-window-help">
+              Drag the middle of the highlighted window to move it. Drag either edge to resize it.
+            </p>
+          </div>
+
+          <aside class="scale-map-card" aria-label="Scale interval and note map">
+            <label>Scale map</label>
+            <div id="scaleMap" class="scale-map"></div>
+          </aside>
+        </div>
+      </div>
+
+      <div class="scroll-hint">Scroll sideways to view all 24 frets.</div>
+      <div class="fretboard-wrap">
+        <div id="fretWindowTrack" class="fret-window-track" aria-label="Fret window selector">
+          <div id="fretWindowTrackGrid" class="fret-window-track-grid"></div>
+          <button type="button" id="fretWindowThumb" class="fret-window-thumb" aria-label="Fret range selector"></button>
+        </div>
+        <div id="fretboard" class="fretboard" aria-label="Guitar fretboard"></div>
+      </div>
+</section>
+  </main>
+
+  <script>
+    const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const DISPLAY_KEYS = [
+      { label: "C", root: "C" },
+      { label: "D♭", root: "C#", natural: "D" },
+      { label: "D", root: "D" },
+      { label: "E♭", root: "D#", natural: "E" },
+      { label: "E", root: "E" },
+      { label: "F", root: "F" },
+      { label: "G♭", root: "F#", natural: "G" },
+      { label: "G", root: "G" },
+      { label: "A♭", root: "G#", natural: "A" },
+      { label: "A", root: "A" },
+      { label: "B♭", root: "A#", natural: "B" },
+      { label: "B", root: "B" }
+    ];
+
+    const NATURAL_KEYS = [
+      { label: "A", natural: "A", root: "A", flatRoot: "G#", flatLabel: "A♭" },
+      { label: "B", natural: "B", root: "B", flatRoot: "A#", flatLabel: "B♭" },
+      { label: "C", natural: "C", root: "C", flatRoot: "B", flatLabel: "C♭" },
+      { label: "D", natural: "D", root: "D", flatRoot: "C#", flatLabel: "D♭" },
+      { label: "E", natural: "E", root: "E", flatRoot: "D#", flatLabel: "E♭" },
+      { label: "F", natural: "F", root: "F", flatRoot: "E", flatLabel: "F♭" },
+      { label: "G", natural: "G", root: "G", flatRoot: "F#", flatLabel: "G♭" }
+    ];
+
+    const STANDARD_TUNING = [
+      { label: "E", note: "E", midi: 64, thickness: "2px" },
+      { label: "B", note: "B", midi: 59, thickness: "2.4px" },
+      { label: "G", note: "G", midi: 55, thickness: "2.8px" },
+      { label: "D", note: "D", midi: 50, thickness: "3.4px" },
+      { label: "A", note: "A", midi: 45, thickness: "4px" },
+      { label: "E", note: "E", midi: 40, thickness: "4.8px" }
+    ];
+
+    const MODES = [
+      {
+        id: "ionian",
+        name: "Ionian / Major",
+        shortName: "Ionian",
+        intervals: [0, 2, 4, 5, 7, 9, 11],
+        degrees: ["1", "2", "3", "4", "5", "6", "7"],
+        feel: "Bright, resolved major sound"
+      },
+      {
+        id: "dorian",
+        name: "Dorian",
+        shortName: "Dorian",
+        intervals: [0, 2, 3, 5, 7, 9, 10],
+        degrees: ["1", "2", "b3", "4", "5", "6", "b7"],
+        feel: "Minor sound with a bright 6"
+      },
+      {
+        id: "phrygian",
+        name: "Phrygian",
+        shortName: "Phrygian",
+        intervals: [0, 1, 3, 5, 7, 8, 10],
+        degrees: ["1", "b2", "b3", "4", "5", "b6", "b7"],
+        feel: "Dark minor sound with a flat 2"
+      },
+      {
+        id: "lydian",
+        name: "Lydian",
+        shortName: "Lydian",
+        intervals: [0, 2, 4, 6, 7, 9, 11],
+        degrees: ["1", "2", "3", "#4", "5", "6", "7"],
+        feel: "Floating major sound with a sharp 4"
+      },
+      {
+        id: "mixolydian",
+        name: "Mixolydian",
+        shortName: "Mixolydian",
+        intervals: [0, 2, 4, 5, 7, 9, 10],
+        degrees: ["1", "2", "3", "4", "5", "6", "b7"],
+        feel: "Dominant major sound with a flat 7"
+      },
+      {
+        id: "aeolian",
+        name: "Aeolian / Natural Minor",
+        shortName: "Aeolian",
+        intervals: [0, 2, 3, 5, 7, 8, 10],
+        degrees: ["1", "2", "b3", "4", "5", "b6", "b7"],
+        feel: "Natural minor sound"
+      },
+      {
+        id: "major-pentatonic",
+        name: "Major Pentatonic",
+        shortName: "Major Pentatonic",
+        intervals: [0, 2, 4, 7, 9],
+        degrees: ["1", "2", "3", "5", "6"],
+        blueNoteInterval: 3,
+        blueNoteDegree: "b3",
+        feel: "Open, bright five-note major sound"
+      },
+      {
+        id: "minor-pentatonic",
+        name: "Minor Pentatonic",
+        shortName: "Minor Pentatonic",
+        intervals: [0, 3, 5, 7, 10],
+        degrees: ["1", "b3", "4", "5", "b7"],
+        blueNoteInterval: 6,
+        blueNoteDegree: "b5",
+        feel: "Classic blues, rock and minor five-note sound"
+      },
+      {
+        id: "locrian",
+        name: "Locrian",
+        shortName: "Locrian",
+        intervals: [0, 1, 3, 5, 6, 8, 10],
+        degrees: ["1", "b2", "b3", "4", "b5", "b6", "b7"],
+        feel: "Unstable diminished sound"
+      }
+    ];
+
+    const MODAL_AREA_WINDOWS = {
+      area_0_4: [0, 4],
+      area_3_7: [3, 7],
+      area_5_9: [5, 9],
+      area_7_11: [7, 11],
+      area_9_13: [9, 13],
+      area_12_16: [12, 16],
+      area_15_19: [15, 19],
+      area_17_21: [17, 21],
+      area_19_24: [19, 24]
+    };
+
+    const MODAL_AREA_LABELS = {
+      all: "Full neck",
+      area_0_4: "Frets 0-4",
+      area_3_7: "Frets 3-7",
+      area_5_9: "Frets 5-9",
+      area_7_11: "Frets 7-11",
+      area_9_13: "Frets 9-13",
+      area_12_16: "Frets 12-16",
+      area_15_19: "Frets 15-19",
+      area_17_21: "Frets 17-21",
+      area_19_24: "Frets 19-24"
+    };
+
+    function isFullNeckSelected() {
+      return selectedFretStart === 0 && selectedFretWidth >= 25;
+    }
+
+    function getSelectedFretEnd() {
+      return Math.min(24, selectedFretStart + selectedFretWidth - 1);
+    }
+
+    function getSelectedFretRange() {
+      return isFullNeckSelected() ? null : [selectedFretStart, getSelectedFretEnd()];
+    }
+
+    function updateFretWindowThumb() {
+      const cells = [...fretWindowTrackGrid.querySelectorAll(".fret-window-track-cell")];
+      if (!cells.length) {
+        return;
+      }
+
+      const startCell = cells[selectedFretStart];
+      const endCell = cells[getSelectedFretEnd()];
+      if (!startCell || !endCell) {
+        return;
+      }
+
+      const left = startCell.offsetLeft;
+      const width = endCell.offsetLeft + endCell.offsetWidth - startCell.offsetLeft;
+
+      fretWindowThumb.style.left = `${left}px`;
+      fretWindowThumb.style.width = `${width}px`;
+      const thumbLabel = isFullNeckSelected()
+        ? "0-24"
+        : `${selectedFretStart}-${getSelectedFretEnd()}`;
+
+      fretWindowThumb.replaceChildren();
+
+      const leftHandle = document.createElement("span");
+      leftHandle.className = "fret-window-resize-handle left";
+      leftHandle.dataset.resizeEdge = "left";
+
+      const labelEl = document.createElement("span");
+      labelEl.className = "fret-window-thumb-label";
+      labelEl.textContent = thumbLabel;
+
+      const rightHandle = document.createElement("span");
+      rightHandle.className = "fret-window-resize-handle right";
+      rightHandle.dataset.resizeEdge = "right";
+
+      fretWindowThumb.append(leftHandle, labelEl, rightHandle);
+    }
+
+    function updateFretWindowControls() {
+      const maxStart = Math.max(0, 25 - selectedFretWidth);
+      selectedFretWidth = Math.max(3, Math.min(25, selectedFretWidth));
+      selectedFretStart = Math.min(selectedFretStart, maxStart);
+
+      fretWindowSummary.textContent = isFullNeckSelected()
+        ? "Full neck"
+        : `Frets ${selectedFretStart}-${getSelectedFretEnd()} (${selectedFretWidth} frets)`;
+
+      playVisibleNotesButton.disabled = isFullNeckSelected();
+      stopPlaybackButton.disabled = !isPlaying;
+
+      updateFretWindowThumb();
+    }
+
+    const PENTATONIC_POSITION_WINDOWS = {
+      "major-pentatonic": {
+        1: [-1, 2],
+        2: [2, 5],
+        3: [4, 7],
+        4: [7, 9],
+        5: [9, 12]
+      },
+      "minor-pentatonic": {
+        1: [0, 3],
+        2: [3, 5],
+        3: [5, 8],
+        4: [7, 10],
+        5: [10, 12]
+      }
+    };
+
+    const CHROMATIC_INTERVALS = {
+      0: "1",
+      1: "b2",
+      2: "2",
+      3: "b3",
+      4: "3",
+      5: "4",
+      6: "b5 / #4",
+      7: "5",
+      8: "b6",
+      9: "6",
+      10: "b7",
+      11: "7"
+    };
+    const MARKER_FRETS = new Set([3, 5, 7, 9, 12, 15, 17, 19, 21, 24]);
+
+    const keyButtons = document.getElementById("keyButtons");
+    const flatKeyToggle = document.getElementById("flatKeyToggle");
+    const modeButtons = document.getElementById("modeButtons");
+    const showOutsideNotesToggle = document.getElementById("showOutsideNotesToggle");
+    const positionControl = document.getElementById("positionControl");
+    const positionSelect = document.getElementById("positionSelect");
+    const includeBlueNoteToggle = document.getElementById("includeBlueNoteToggle");
+    const fretWindowControl = document.getElementById("fretWindowControl");
+    const fretWindowSummary = document.getElementById("fretWindowSummary");
+    const playVisibleNotesButton = document.getElementById("playVisibleNotesButton");
+    const stopPlaybackButton = document.getElementById("stopPlaybackButton");
+    const bpmInput = document.getElementById("bpmInput");
+    const subdivisionSelect = document.getElementById("subdivisionSelect");
+    const repeatPlaybackToggle = document.getElementById("repeatPlaybackToggle");
+    const directionButtons = document.querySelectorAll(".direction-button");
+    const fullNeckButton = document.getElementById("fullNeckButton");
+    const fretWindowTrack = document.getElementById("fretWindowTrack");
+    const fretWindowTrackGrid = document.getElementById("fretWindowTrackGrid");
+    const fretWindowThumb = document.getElementById("fretWindowThumb");
+    const threeNotesPerStringToggle = document.getElementById("threeNotesPerStringToggle");
+    const extendedModalPatternToggle = document.getElementById("extendedModalPatternToggle");
+    const showIntervalsToggle = document.getElementById("showIntervalsToggle");
+    const fretboard = document.getElementById("fretboard");
+    const selectedKey = document.getElementById("selectedKey");
+    const scaleNotesEl = document.getElementById("scaleNotes");
+    const modeFormulaEl = document.getElementById("modeFormula");
+    const positionSummaryEl = document.getElementById("positionSummary");
+    const scaleMapEl = document.getElementById("scaleMap");
+
+    let selectedNaturalKey = "C";
+    let selectedRoot = "C";
+    let selectedModeId = "ionian";
+    let selectedFretStart = 0;
+    let selectedFretWidth = 4;
+    let selectedBpm = 90;
+    let selectedSubdivision = 1;
+    let selectedPlaybackDirection = "up";
+    let repeatPlayback = false;
+    let audioContext = null;
+    let playbackTimeouts = [];
+    let isPlaying = false;
+    let stopRequested = false;
+
+    function noteAt(openNote, fret) {
+      const openIndex = NOTES.indexOf(openNote);
+      return NOTES[(openIndex + fret) % NOTES.length];
+    }
+
+    function pitchAt(stringData, fret) {
+      return stringData.midi + fret;
+    }
+
+    function frequencyFromMidi(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+    function getCurrentMode() {
+      return MODES.find(mode => mode.id === selectedModeId) || MODES[0];
+    }
+
+    function isPentatonicMode(mode) {
+      return mode.id === "major-pentatonic" || mode.id === "minor-pentatonic";
+    }
+
+    function isModalMode(mode) {
+      return !isPentatonicMode(mode);
+    }
+
+    function isBlueNote(root, noteName, mode) {
+      if (!isPentatonicMode(mode) || !includeBlueNoteToggle.checked || typeof mode.blueNoteInterval !== "number") {
+        return false;
+      }
+
+      const rootIndex = NOTES.indexOf(root);
+      const noteIndex = NOTES.indexOf(noteName);
+      const distance = (noteIndex - rootIndex + 12) % 12;
+
+      return distance === mode.blueNoteInterval;
+    }
+
+    function updatePositionControl(mode) {
+      const isPentatonic = isPentatonicMode(mode);
+      const isModal = isModalMode(mode);
+
+      positionControl.classList.toggle("hidden", !isPentatonic);
+      if (!isPentatonic) {
+        positionSelect.value = "all";
+        includeBlueNoteToggle.checked = false;
+      }
+
+      if (!isModal) {
+        threeNotesPerStringToggle.checked = false;
+      }
+
+      includeBlueNoteToggle.disabled = !isPentatonic;
+      threeNotesPerStringToggle.disabled = !isModal || isFullNeckSelected();
+if (!isModal || isFullNeckSelected()) {
+        threeNotesPerStringToggle.checked = false;
+      }
+
+      const canUseExtendedPattern = (isModal || isPentatonic) && !isFullNeckSelected();
+
+      if (!canUseExtendedPattern) {
+        extendedModalPatternToggle.checked = false;
+        extendedModalPatternToggle.disabled = true;
+      } else {
+        extendedModalPatternToggle.disabled = false;
+      }
+
+      if (isPentatonic && positionSelect.value === "all" && !isFullNeckSelected()) {
+        extendedModalPatternToggle.disabled = false;
+      }
+    }
+
+    function getRootFret(root) {
+      const lowEOpenIndex = NOTES.indexOf("E");
+      const rootIndex = NOTES.indexOf(root);
+      return (rootIndex - lowEOpenIndex + 12) % 12;
+    }
+
+    function normalizeFretRange(start, end) {
+      let normalizedStart = start;
+      let normalizedEnd = end;
+
+      while (normalizedStart < 0) {
+        normalizedStart += 12;
+        normalizedEnd += 12;
+      }
+
+      while (normalizedEnd > 24 && normalizedStart >= 12) {
+        normalizedStart -= 12;
+        normalizedEnd -= 12;
+      }
+
+      return [Math.max(0, normalizedStart), Math.min(24, normalizedEnd)];
+    }
+
+    function getPositionRange(root, selectedPosition, mode) {
+      if (selectedPosition === "all" || !isPentatonicMode(mode)) {
+        return null;
+      }
+
+      const modeWindows = PENTATONIC_POSITION_WINDOWS[mode.id];
+      const offsetRange = modeWindows?.[selectedPosition];
+
+      if (!offsetRange) {
+        return null;
+      }
+
+      const rootFret = getRootFret(root);
+      const start = rootFret + offsetRange[0];
+      const end = rootFret + offsetRange[1];
+
+      return normalizeFretRange(start, end);
+    }
+
+    function alignFretWindowToPentatonicPosition() {
+      const mode = getCurrentMode();
+
+      if (!isPentatonicMode(mode) || positionSelect.value === "all") {
+        return;
+      }
+
+      const range = getPositionRange(selectedRoot, positionSelect.value, mode);
+      if (!range) {
+        return;
+      }
+
+      selectedFretStart = range[0];
+      selectedFretWidth = range[1] - range[0] + 1;
+      updateFretWindowControls();
+    }
+
+    function fretMatchesWrappedRange(fret, start, end) {
+      const ranges = [[start, end]];
+
+      if (start < 0) {
+        ranges.push([start + 12, end + 12]);
+      }
+
+      if (end > 24) {
+        ranges.push([start - 12, end - 12]);
+      }
+
+      ranges.push([start + 12, end + 12]);
+      ranges.push([start - 12, end - 12]);
+
+      return ranges.some(([rangeStart, rangeEnd]) => fret >= rangeStart && fret <= rangeEnd);
+    }
+
+    function isLowerExtensionString(stringIndex) {
+      return stringIndex === 4 || stringIndex === 5;
+    }
+
+    function isUpperExtensionString(stringIndex) {
+      return stringIndex === 0 || stringIndex === 1 || stringIndex === 2;
+    }
+
+    function isExtendedFretAllowedForString(fret, stringIndex, start, end) {
+      // Extended pattern should only extend immediately around the active fret window.
+      // Example: active frets 5-8 can extend to 3-4 on low E/A and 9-10 on G/B/high E.
+      // Do not wrap this to octave-equivalent fret ranges elsewhere on the neck.
+      const inLowerExtension = isLowerExtensionString(stringIndex) && fret >= start - 2 && fret <= start - 1;
+      const inUpperExtension = isUpperExtensionString(stringIndex) && fret >= end + 1 && fret <= end + 2;
+
+      return inLowerExtension || inUpperExtension;
+    }
+
+    function getPositionClassification(root, fret, stringIndex, mode) {
+      if (!isPentatonicMode(mode)) {
+        return "in-position";
+      }
+
+      if (positionSelect.value === "all") {
+        if (isFullNeckSelected()) {
+          return "in-position";
+        }
+
+        const windowRange = getSelectedFretRange();
+        const [windowStart, windowEnd] = windowRange;
+        const inWindow = fret >= windowStart && fret <= windowEnd;
+        const isRootStarted = isWithinRootStartedWindow(root, mode, fret, stringIndex, windowRange);
+
+        if (inWindow && isRootStarted) {
+          return "in-position";
+        }
+
+        const isAllowedExtendedFret = isPentatonicExtendedEnabled()
+          && isExtendedFretAllowedForString(fret, stringIndex, windowStart, windowEnd);
+
+        return isAllowedExtendedFret ? "extended" : "out-of-position";
+      }
+
+      const range = getPositionRange(root, positionSelect.value, mode);
+      if (!range) {
+        return "in-position";
+      }
+
+      const [start, end] = range;
+
+      if (fretMatchesWrappedRange(fret, start, end)) {
+        const isRootStarted = isWithinRootStartedWindow(root, mode, fret, stringIndex, [start, end]);
+        return isRootStarted ? "in-position" : "out-of-position";
+      }
+
+      if (!isPentatonicExtendedEnabled()) {
+        return "out-of-position";
+      }
+
+      if (isExtendedFretAllowedForString(fret, stringIndex, start, end)) {
+        return "extended";
+      }
+
+      return "out-of-position";
+    }
+
+    function getModalAreaRanges() {
+      const range = getSelectedFretRange();
+      return range ? [range] : [];
+    }
+
+    function getRootPitchBoundsForWindow(root, mode, range) {
+      if (!range) {
+        return null;
+      }
+
+      const [start, end] = range;
+      const rootPitches = [];
+
+      STANDARD_TUNING.forEach((stringData, stringIndex) => {
+        for (let fret = Math.max(0, start); fret <= Math.min(24, end); fret++) {
+          const noteName = noteAt(stringData.note, fret);
+
+          if (noteName === root) {
+            rootPitches.push(pitchAt(stringData, fret));
+          }
+        }
+      });
+
+      if (!rootPitches.length) {
+        return null;
+      }
+
+      return {
+        low: Math.min(...rootPitches),
+        high: Math.max(...rootPitches)
+      };
+    }
+
+    function isWithinRootStartedWindow(root, mode, fret, stringIndex, range) {
+      if (extendedModalPatternToggle.checked || !range) {
+        return true;
+      }
+
+      const bounds = getRootPitchBoundsForWindow(root, mode, range);
+      if (!bounds) {
+        return true;
+      }
+
+      const stringData = STANDARD_TUNING[stringIndex];
+      const pitch = pitchAt(stringData, fret);
+
+      return pitch >= bounds.low && pitch <= bounds.high;
+    }
+
+    function getStringShapeCount() {
+      return threeNotesPerStringToggle.checked ? 3 : null;
+    }
+
+    function isPentatonicExtendedEnabled() {
+      return extendedModalPatternToggle.checked;
+    }
+
+    function countScaleNotesInRange(root, mode, range) {
+      const scaleNotes = getScale(root, mode);
+      const [start, end] = range;
+      let count = 0;
+
+      STANDARD_TUNING.forEach(stringData => {
+        for (let fret = Math.max(0, start); fret <= Math.min(24, end); fret++) {
+          const noteName = noteAt(stringData.note, fret);
+          if (scaleNotes.includes(noteName)) {
+            count += 1;
+          }
+        }
+      });
+
+      return count;
+    }
+
+    function getRootFretDistanceToRange(root, range) {
+      const rootFret = getRootFret(root);
+      const candidates = [rootFret, rootFret + 12, rootFret - 12];
+      const [start, end] = range;
+
+      return Math.min(...candidates.map(candidate => {
+        if (candidate >= start && candidate <= end) {
+          return 0;
+        }
+
+        return Math.min(Math.abs(candidate - start), Math.abs(candidate - end));
+      }));
+    }
+
+    function getCompactFlexibleRange(root, mode, baseRange) {
+      const [baseStart, baseEnd] = baseRange;
+      const compactSpan = 3; // 4 frets inclusive, e.g. 4-7
+      const areaSpan = baseEnd - baseStart;
+
+      if (areaSpan <= compactSpan) {
+        return baseRange;
+      }
+
+      const candidates = [];
+
+      for (let start = baseStart; start <= baseEnd - compactSpan; start++) {
+        const range = [start, start + compactSpan];
+
+        candidates.push({
+          range,
+          noteCount: countScaleNotesInRange(root, mode, range),
+          rootDistance: getRootFretDistanceToRange(root, range),
+          start
+        });
+      }
+
+      candidates.sort((a, b) => {
+        if (b.noteCount !== a.noteCount) {
+          return b.noteCount - a.noteCount;
+        }
+
+        if (a.rootDistance !== b.rootDistance) {
+          return a.rootDistance - b.rootDistance;
+        }
+
+        return a.start - b.start;
+      });
+
+      return candidates[0]?.range || baseRange;
+    }
+
+    function getScaleNoteFretsForString(openNote, root, mode, range) {
+      const scaleNotes = getScale(root, mode);
+      const [start, end] = range;
+      const frets = [];
+
+      for (let fret = Math.max(0, start); fret <= Math.min(24, end); fret++) {
+        const noteName = noteAt(openNote, fret);
+        if (scaleNotes.includes(noteName)) {
+          frets.push(fret);
+        }
+      }
+
+      return frets;
+    }
+
+    function getDistanceToRange(fret, start, end) {
+      if (fret >= start && fret <= end) {
+        return 0;
+      }
+
+      return fret < start ? start - fret : fret - end;
+    }
+
+    function getThreeNotesPerStringPrimaryFrets(openNote, root, mode, baseRange) {
+      const [baseStart, baseEnd] = baseRange;
+      const targetCount = 3;
+      const centre = (baseStart + baseEnd) / 2;
+
+      let candidateFrets = getScaleNoteFretsForString(openNote, root, mode, [
+        Math.max(0, baseStart - 5),
+        Math.min(24, baseEnd + 5)
+      ]);
+
+      if (candidateFrets.length < targetCount) {
+        candidateFrets = getScaleNoteFretsForString(openNote, root, mode, [0, 24]);
+      }
+
+      const inWindow = candidateFrets
+        .filter(fret => fret >= baseStart && fret <= baseEnd)
+        .sort((a, b) => Math.abs(a - centre) - Math.abs(b - centre) || a - b);
+
+      const outsideWindow = candidateFrets
+        .filter(fret => fret < baseStart || fret > baseEnd)
+        .sort((a, b) => {
+          const distanceDiff = getDistanceToRange(a, baseStart, baseEnd) - getDistanceToRange(b, baseStart, baseEnd);
+          if (distanceDiff !== 0) {
+            return distanceDiff;
+          }
+
+          return Math.abs(a - centre) - Math.abs(b - centre) || a - b;
+        });
+
+      const selected = [];
+
+      [...inWindow, ...outsideWindow].forEach(fret => {
+        if (selected.length < targetCount && !selected.includes(fret)) {
+          selected.push(fret);
+        }
+      });
+
+      return selected.sort((a, b) => a - b);
+    }
+
+    function getModalClassificationForRangeWithoutRootBoundary(root, fret, stringIndex, mode, openNote, baseRange) {
+      const shapeCount = getStringShapeCount();
+      const [baseStart, baseEnd] = baseRange;
+
+      if (!shapeCount) {
+        const inSelectedWindow = fret >= baseStart && fret <= baseEnd;
+
+        if (inSelectedWindow) {
+          return "in-position";
+        }
+
+        const isAllowedExtendedFret = extendedModalPatternToggle.checked
+          && isExtendedFretAllowedForString(fret, stringIndex, baseStart, baseEnd);
+
+        return isAllowedExtendedFret ? "extended" : "out-of-position";
+      }
+
+      const searchRange = extendedModalPatternToggle.checked
+        ? [baseStart - 2, baseEnd + 2]
+        : [baseStart, baseEnd];
+
+      const fretsInSearchRange = getScaleNoteFretsForString(openNote, root, mode, searchRange);
+      const fretsInBaseRange = fretsInSearchRange.filter(scaleFret => scaleFret >= baseStart && scaleFret <= baseEnd);
+
+      const primaryFrets = shapeCount === 3
+        ? getThreeNotesPerStringPrimaryFrets(openNote, root, mode, baseRange)
+        : fretsInBaseRange.slice(0, shapeCount);
+      const extendedFrets = extendedModalPatternToggle.checked
+        ? fretsInSearchRange
+            .filter(scaleFret => !primaryFrets.includes(scaleFret))
+            .filter(scaleFret => isExtendedFretAllowedForString(scaleFret, stringIndex, baseStart, baseEnd))
+            .slice(0, Math.max(0, shapeCount + 2))
+        : [];
+
+      if (primaryFrets.includes(fret)) {
+        if (shapeCount === 3) {
+          return "in-position";
+        }
+
+        const isRootStarted = isWithinRootStartedWindow(root, mode, fret, stringIndex, baseRange);
+        return isRootStarted ? "in-position" : "out-of-position";
+      }
+
+      if (extendedFrets.includes(fret)) {
+        return "extended";
+      }
+
+      return "out-of-position";
+    }
+
+    function getRootPitchBoundsForRange(root, mode, baseRange) {
+      if (extendedModalPatternToggle.checked) {
+        return null;
+      }
+
+      const rootPitches = [];
+
+      STANDARD_TUNING.forEach((stringData, stringIndex) => {
+        for (let fret = 0; fret <= 24; fret++) {
+          const noteName = noteAt(stringData.note, fret);
+
+          if (noteName !== root) {
+            continue;
+          }
+
+          const classification = getModalClassificationForRangeWithoutRootBoundary(
+            root,
+            fret,
+            stringIndex,
+            mode,
+            stringData.note,
+            baseRange
+          );
+
+          if (classification === "in-position") {
+            rootPitches.push(pitchAt(stringData, fret));
+          }
+        }
+      });
+
+      if (rootPitches.length < 2) {
+        return null;
+      }
+
+      return {
+        low: Math.min(...rootPitches),
+        high: Math.max(...rootPitches)
+      };
+    }
+
+    function getModalClassificationForRange(root, fret, stringIndex, mode, openNote, baseRange) {
+      const baseClassification = getModalClassificationForRangeWithoutRootBoundary(
+        root,
+        fret,
+        stringIndex,
+        mode,
+        openNote,
+        baseRange
+      );
+
+      if (baseClassification !== "in-position" || extendedModalPatternToggle.checked || getStringShapeCount() === 3) {
+        return baseClassification;
+      }
+
+      const bounds = getRootPitchBoundsForRange(root, mode, baseRange);
+
+      if (!bounds) {
+        return baseClassification;
+      }
+
+      const stringData = STANDARD_TUNING[stringIndex];
+      const pitch = pitchAt(stringData, fret);
+
+      return pitch >= bounds.low && pitch <= bounds.high
+        ? baseClassification
+        : "out-of-position";
+    }
+
+    function getModalClassification(root, fret, stringIndex, mode, openNote) {
+      if (!isModalMode(mode) || isFullNeckSelected()) {
+        return "in-position";
+      }
+
+      const ranges = getModalAreaRanges();
+      if (!ranges.length) {
+        return "in-position";
+      }
+
+      const classifications = ranges.map(range =>
+        getModalClassificationForRange(root, fret, stringIndex, mode, openNote, range)
+      );
+
+      if (classifications.includes("in-position")) {
+        return "in-position";
+      }
+
+      if (classifications.includes("extended")) {
+        return "extended";
+      }
+
+      return "out-of-position";
+    }
+
+    function getPositionSummary(root, mode) {
+      if (isPentatonicMode(mode)) {
+        if (positionSelect.value === "all") {
+          return "Full neck";
+        }
+
+        const range = getPositionRange(root, positionSelect.value, mode);
+        if (!range) {
+          return "Full neck";
+        }
+
+        const [start, end] = range;
+        const displayStart = start < 0 ? start + 12 : start;
+        const displayEnd = end < 0 ? end + 12 : end;
+
+        const suffix = isPentatonicExtendedEnabled() ? " + extended" : "";
+        return `Position ${positionSelect.value}: frets ${displayStart}-${displayEnd}${suffix}`;
+      }
+
+      if (isFullNeckSelected()) {
+        return "Full neck";
+      }
+
+      const ranges = getModalAreaRanges();
+      if (!ranges.length) {
+        return "Full neck";
+      }
+
+      const areaLabel = `Frets ${selectedFretStart}-${getSelectedFretEnd()}`;
+      const shapeLabel = threeNotesPerStringToggle.checked
+        ? "3 notes per string"
+        : "compact flexible";
+      const suffix = extendedModalPatternToggle.checked ? " + extended" : " root-to-root";
+
+      if (!threeNotesPerStringToggle.checked) {
+        const compactRange = getCompactFlexibleRange(root, mode, ranges[0]);
+        return `${areaLabel}: compact frets ${compactRange[0]}-${compactRange[1]}, ${shapeLabel}${suffix}`;
+      }
+
+      return `${areaLabel}: ${shapeLabel}${suffix}`;
+    }
+
+    function getActiveIntervals(mode) {
+      const intervals = [...mode.intervals];
+
+      if (isPentatonicMode(mode) && includeBlueNoteToggle.checked && typeof mode.blueNoteInterval === "number") {
+        intervals.push(mode.blueNoteInterval);
+      }
+
+      return [...new Set(intervals)].sort((a, b) => a - b);
+    }
+
+    function getActiveDegrees(mode) {
+      const intervals = getActiveIntervals(mode);
+
+      return intervals.map(interval => {
+        const originalIndex = mode.intervals.indexOf(interval);
+
+        if (originalIndex >= 0) {
+          return mode.degrees[originalIndex];
+        }
+
+        if (interval === mode.blueNoteInterval) {
+          return mode.blueNoteDegree || CHROMATIC_INTERVALS[interval];
+        }
+
+        return CHROMATIC_INTERVALS[interval];
+      });
+    }
+
+    function getScale(root, mode) {
+      const rootIndex = NOTES.indexOf(root);
+      return getActiveIntervals(mode).map(interval => NOTES[(rootIndex + interval) % NOTES.length]);
+    }
+
+    function getIntervalFromRoot(root, noteName) {
+      const rootIndex = NOTES.indexOf(root);
+      const noteIndex = NOTES.indexOf(noteName);
+      const distance = (noteIndex - rootIndex + 12) % 12;
+      return CHROMATIC_INTERVALS[distance];
+    }
+
+    function getScaleDegree(root, noteName, mode) {
+      const rootIndex = NOTES.indexOf(root);
+      const noteIndex = NOTES.indexOf(noteName);
+      const distance = (noteIndex - rootIndex + 12) % 12;
+      const activeIntervals = getActiveIntervals(mode);
+      const activeDegrees = getActiveDegrees(mode);
+      const scaleIndex = activeIntervals.indexOf(distance);
+
+      return scaleIndex >= 0 ? activeDegrees[scaleIndex] : getIntervalFromRoot(root, noteName);
+    }
+
+    function getDisplayText(root, noteName, isInScale, mode) {
+      const interval = getScaleDegree(root, noteName, mode);
+
+      if (showIntervalsToggle.checked) {
+        return isInScale ? interval : "—";
+      }
+
+      return noteName;
+    }
+
+    function getSelectedKey() {
+      const key = NATURAL_KEYS.find(item => item.natural === selectedNaturalKey) || NATURAL_KEYS[2];
+      return flatKeyToggle.checked
+        ? { root: key.flatRoot, label: key.flatLabel }
+        : { root: key.root, label: key.label };
+    }
+
+    function updateKeyButtons() {
+      const selectedKey = getSelectedKey();
+      selectedRoot = selectedKey.root;
+
+      [...keyButtons.querySelectorAll(".key-button")].forEach(button => {
+        const key = NATURAL_KEYS.find(item => item.natural === button.dataset.key);
+        const label = flatKeyToggle.checked ? key.flatLabel : key.label;
+
+        button.textContent = label;
+        button.classList.toggle("active", key.natural === selectedNaturalKey);
+        button.setAttribute("aria-pressed", key.natural === selectedNaturalKey ? "true" : "false");
+      });
+    }
+
+    function populateKeyButtons() {
+      NATURAL_KEYS.forEach(key => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "key-button";
+        button.dataset.key = key.natural;
+        button.textContent = key.label;
+        button.setAttribute("aria-pressed", key.natural === selectedNaturalKey ? "true" : "false");
+
+        button.addEventListener("click", () => {
+          selectedNaturalKey = key.natural;
+          updateKeyButtons();
+          renderFretboard(selectedRoot);
+        });
+
+        keyButtons.appendChild(button);
+      });
+
+      updateKeyButtons();
+    }
+
+    function updateModeButtons() {
+      [...modeButtons.querySelectorAll(".mode-button")].forEach(button => {
+        button.classList.toggle("active", button.dataset.mode === selectedModeId);
+        button.setAttribute("aria-pressed", button.dataset.mode === selectedModeId ? "true" : "false");
+      });
+    }
+
+    function populateModeButtons() {
+      MODES.forEach(mode => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mode-button";
+        button.dataset.mode = mode.id;
+        button.textContent = mode.shortName;
+        button.setAttribute("aria-pressed", mode.id === selectedModeId ? "true" : "false");
+
+        button.addEventListener("click", () => {
+          selectedModeId = mode.id;
+updateModeButtons();
+          renderFretboard(selectedRoot);
+        });
+
+        modeButtons.appendChild(button);
+      });
+
+      updateModeButtons();
+    }
+
+    function getVisiblePlayableNotes() {
+      if (isFullNeckSelected()) {
+        return [];
+      }
+
+      return [...fretboard.querySelectorAll(".note[data-midi]")]
+        .filter(note => !note.classList.contains("hidden-note") && !note.classList.contains("out-of-position"))
+        .map(note => ({
+          midi: Number(note.dataset.midi),
+          element: note
+        }))
+        .filter(item => Number.isFinite(item.midi))
+        .sort((a, b) => a.midi - b.midi);
+    }
+
+    function getPlaybackSequence() {
+      const ascending = getVisiblePlayableNotes();
+
+      if (selectedPlaybackDirection === "down") {
+        return [...ascending].reverse();
+      }
+
+      if (selectedPlaybackDirection === "up-down") {
+        const descending = [...ascending].reverse();
+
+        if (ascending.length <= 1) {
+          return ascending;
+        }
+
+        return [...ascending, ...descending.slice(1, -1)];
+      }
+
+      return ascending;
+    }
+
+    function updateDirectionButtons() {
+      directionButtons.forEach(button => {
+        const isActive = button.dataset.direction === selectedPlaybackDirection;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    function clearPlayback() {
+      playbackTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+      playbackTimeouts = [];
+      isPlaying = false;
+      stopRequested = true;
+      fretboard.querySelectorAll(".note.playing").forEach(note => note.classList.remove("playing"));
+      if (playVisibleNotesButton) {
+        playVisibleNotesButton.disabled = isFullNeckSelected();
+      }
+      if (stopPlaybackButton) {
+        stopPlaybackButton.disabled = true;
+      }
+    }
+
+    function resetPlaybackTimersOnly() {
+      playbackTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+      playbackTimeouts = [];
+      fretboard.querySelectorAll(".note.playing").forEach(note => note.classList.remove("playing"));
+    }
+
+    function getAudioContext() {
+      if (!audioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContextClass();
+      }
+
+      return audioContext;
+    }
+
+    function makeDistortionCurve(amount = 80) {
+      const samples = 44100;
+      const curve = new Float32Array(samples);
+      const deg = Math.PI / 180;
+
+      for (let i = 0; i < samples; i++) {
+        const x = (i * 2) / samples - 1;
+        curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+      }
+
+      return curve;
+    }
+
+    function playMidiNote(midi, element, startDelay = 0, duration = 0.32) {
+      const context = getAudioContext();
+      const startTime = context.currentTime + startDelay;
+      const stopTime = startTime + duration + 0.08;
+      const frequency = frequencyFromMidi(midi);
+
+      const mainOscillator = context.createOscillator();
+      const bodyOscillator = context.createOscillator();
+      const pluckGain = context.createGain();
+      const bodyGain = context.createGain();
+      const filter = context.createBiquadFilter();
+      const drive = context.createWaveShaper();
+      const outputGain = context.createGain();
+
+      mainOscillator.type = "triangle";
+      mainOscillator.frequency.setValueAtTime(frequency, startTime);
+
+      bodyOscillator.type = "sine";
+      bodyOscillator.frequency.setValueAtTime(frequency * 0.997, startTime);
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(3200, startTime);
+      filter.frequency.exponentialRampToValueAtTime(900, startTime + duration);
+      filter.Q.setValueAtTime(0.8, startTime);
+
+      drive.curve = makeDistortionCurve(28);
+      drive.oversample = "2x";
+
+      pluckGain.gain.setValueAtTime(0.0001, startTime);
+      pluckGain.gain.exponentialRampToValueAtTime(0.28, startTime + 0.008);
+      pluckGain.gain.exponentialRampToValueAtTime(0.065, startTime + 0.09);
+      pluckGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      bodyGain.gain.setValueAtTime(0.0001, startTime);
+      bodyGain.gain.exponentialRampToValueAtTime(0.09, startTime + 0.018);
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * 0.92);
+
+      outputGain.gain.setValueAtTime(0.62, startTime);
+
+      mainOscillator.connect(pluckGain);
+      bodyOscillator.connect(bodyGain);
+      pluckGain.connect(filter);
+      bodyGain.connect(filter);
+      filter.connect(drive);
+      drive.connect(outputGain);
+      outputGain.connect(context.destination);
+
+      mainOscillator.start(startTime);
+      bodyOscillator.start(startTime);
+      mainOscillator.stop(stopTime);
+      bodyOscillator.stop(stopTime);
+
+      const highlightOn = setTimeout(() => element.classList.add("playing"), startDelay * 1000);
+      const highlightOff = setTimeout(() => element.classList.remove("playing"), (startDelay + duration) * 1000);
+
+      playbackTimeouts.push(highlightOn, highlightOff);
+    }
+
+    function getPlaybackStepSeconds() {
+      const safeBpm = Math.max(40, Math.min(220, Number(selectedBpm) || 90));
+      const safeSubdivision = Math.max(1, Math.min(4, Number(selectedSubdivision) || 1));
+      return 60 / safeBpm / safeSubdivision;
+    }
+
+    async function playVisibleNotes() {
+      if (isFullNeckSelected()) {
+        return;
+      }
+
+      resetPlaybackTimersOnly();
+
+      const notes = getPlaybackSequence();
+      if (!notes.length) {
+        clearPlayback();
+        return;
+      }
+
+      const context = getAudioContext();
+      if (context.state === "suspended") {
+        await context.resume();
+      }
+
+      isPlaying = true;
+      stopRequested = false;
+      playVisibleNotesButton.disabled = true;
+      stopPlaybackButton.disabled = false;
+
+      const scheduleSequence = () => {
+        if (stopRequested || !isPlaying) {
+          return;
+        }
+
+        const currentNotes = getPlaybackSequence();
+        if (!currentNotes.length) {
+          clearPlayback();
+          return;
+        }
+
+        const gap = getPlaybackStepSeconds();
+        const duration = Math.min(0.42, gap * 0.82);
+
+        fretboard.querySelectorAll(".note.playing").forEach(note => note.classList.remove("playing"));
+
+        currentNotes.forEach((note, index) => {
+          playMidiNote(note.midi, note.element, index * gap, duration);
+        });
+
+        const sequenceLengthMs = (currentNotes.length * gap + duration + 0.08) * 1000;
+
+        const finishTimeout = setTimeout(() => {
+          if (repeatPlayback && isPlaying && !stopRequested) {
+            scheduleSequence();
+          } else {
+            clearPlayback();
+          }
+        }, sequenceLengthMs);
+
+        playbackTimeouts.push(finishTimeout);
+      };
+
+      scheduleSequence();
+    }
+
+    function restartPlaybackIfNeeded() {
+      if (isPlaying && !stopRequested) {
+        playVisibleNotes();
+      }
+    }
+
+    function initialiseFretWindowControls() {
+      const spacer = document.createElement("div");
+      spacer.className = "fret-window-track-spacer";
+      fretWindowTrackGrid.appendChild(spacer);
+
+      for (let fret = 0; fret <= 24; fret++) {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "fret-window-track-cell";
+        cell.dataset.fret = String(fret);
+        cell.textContent = String(fret);
+
+        cell.addEventListener("click", () => {
+          selectedFretStart = Math.min(fret, 25 - selectedFretWidth);
+          updateFretWindowControls();
+          renderFretboard(selectedRoot);
+        });
+
+        fretWindowTrackGrid.appendChild(cell);
+      }
+
+      const getCellWidth = () => {
+        const firstCell = fretWindowTrackGrid.querySelector(".fret-window-track-cell");
+        return firstCell ? firstCell.getBoundingClientRect().width : 1;
+      };
+
+      let dragState = null;
+
+      const getFretDelta = (clientX) => {
+        if (!dragState) {
+          return 0;
+        }
+
+        return Math.round((clientX - dragState.startClientX) / getCellWidth());
+      };
+
+      fretWindowThumb.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+
+        const edge = event.target?.dataset?.resizeEdge || "move";
+        dragState = {
+          mode: edge,
+          startClientX: event.clientX,
+          originalStart: selectedFretStart,
+          originalWidth: selectedFretWidth
+        };
+
+        fretWindowThumb.classList.toggle("resizing", edge !== "move");
+        fretWindowThumb.classList.toggle("dragging", edge === "move");
+        fretWindowThumb.setPointerCapture(event.pointerId);
+      });
+
+      fretWindowThumb.addEventListener("pointermove", (event) => {
+        if (!dragState) {
+          return;
+        }
+
+        const delta = getFretDelta(event.clientX);
+
+        if (dragState.mode === "move") {
+          const maxStart = Math.max(0, 25 - dragState.originalWidth);
+          selectedFretStart = Math.max(0, Math.min(maxStart, dragState.originalStart + delta));
+          selectedFretWidth = dragState.originalWidth;
+        }
+
+        if (dragState.mode === "left") {
+          const originalEnd = dragState.originalStart + dragState.originalWidth - 1;
+          const newStart = Math.max(0, Math.min(originalEnd - 2, dragState.originalStart + delta));
+          selectedFretStart = newStart;
+          selectedFretWidth = originalEnd - newStart + 1;
+        }
+
+        if (dragState.mode === "right") {
+          const newEnd = Math.max(dragState.originalStart + 2, Math.min(24, dragState.originalStart + dragState.originalWidth - 1 + delta));
+          selectedFretStart = dragState.originalStart;
+          selectedFretWidth = newEnd - selectedFretStart + 1;
+        }
+
+        updateFretWindowControls();
+        renderFretboard(selectedRoot);
+      });
+
+      const stopDrag = (event) => {
+        if (!dragState) {
+          return;
+        }
+
+        dragState = null;
+        fretWindowThumb.classList.remove("dragging", "resizing");
+
+        if (event && fretWindowThumb.hasPointerCapture(event.pointerId)) {
+          fretWindowThumb.releasePointerCapture(event.pointerId);
+        }
+      };
+
+      fretWindowThumb.addEventListener("pointerup", stopDrag);
+      fretWindowThumb.addEventListener("pointercancel", stopDrag);
+
+      fullNeckButton.addEventListener("click", () => {
+        selectedFretStart = 0;
+        selectedFretWidth = 25;
+        updateFretWindowControls();
+        renderFretboard(selectedRoot);
+      });
+
+      window.addEventListener("resize", updateFretWindowThumb);
+
+      updateFretWindowControls();
+    }
+
+    function renderScaleMap(root, mode) {
+      const scaleNotes = getScale(root, mode);
+      const degrees = getActiveDegrees(mode);
+
+      scaleMapEl.innerHTML = "";
+
+      scaleNotes.forEach((noteName, index) => {
+        const item = document.createElement("div");
+        item.className = "scale-map-item";
+
+        const degree = document.createElement("span");
+        degree.className = "scale-map-degree";
+        degree.textContent = degrees[index] || "";
+
+        const note = document.createElement("span");
+        note.className = "scale-map-note";
+        note.textContent = noteName;
+
+        item.append(degree, note);
+        scaleMapEl.appendChild(item);
+      });
+    }
+
+    function renderFretboard(root = "C") {
+      const wasPlaying = isPlaying && !stopRequested;
+      if (!wasPlaying) {
+        clearPlayback();
+      } else {
+        resetPlaybackTimersOnly();
+      }
+
+      const mode = getCurrentMode();
+      updatePositionControl(mode);
+
+      const scaleNotes = getScale(root, mode);
+      const selectedKeyInfo = getSelectedKey();
+      const keyLabel = selectedKeyInfo.root === root ? selectedKeyInfo.label : (DISPLAY_KEYS.find(key => key.root === root)?.label || root);
+
+      selectedKey.textContent = `${keyLabel} ${mode.shortName}`;
+      scaleNotesEl.textContent = scaleNotes.join(" ");
+      modeFormulaEl.textContent = getActiveDegrees(mode).join(" ");
+      positionSummaryEl.textContent = getPositionSummary(root, mode);
+      renderScaleMap(root, mode);
+
+      fretboard.innerHTML = "";
+
+      const corner = document.createElement("div");
+      corner.className = "corner";
+      corner.textContent = "String";
+      fretboard.appendChild(corner);
+
+      for (let fret = 0; fret <= 24; fret++) {
+        const label = document.createElement("div");
+        label.className = `fret-label ${MARKER_FRETS.has(fret) ? "marker" : ""}`;
+        label.textContent = fret === 0 ? "Open" : fret;
+        fretboard.appendChild(label);
+      }
+
+      STANDARD_TUNING.forEach((stringData, stringIndex) => {
+        const stringLabel = document.createElement("div");
+        stringLabel.className = "string-label";
+        stringLabel.textContent = stringData.label;
+        fretboard.appendChild(stringLabel);
+
+        for (let fret = 0; fret <= 24; fret++) {
+          const noteName = noteAt(stringData.note, fret);
+          const isRoot = noteName === root;
+          const isInScale = scaleNotes.includes(noteName);
+          const positionClass = isPentatonicMode(mode)
+            ? getPositionClassification(root, fret, stringIndex, mode)
+            : getModalClassification(root, fret, stringIndex, mode, stringData.note);
+          const shouldHighlight = isInScale && positionClass !== "out-of-position";
+          const isExtended = isInScale && positionClass === "extended";
+          const isBlue = shouldHighlight && isBlueNote(root, noteName, mode);
+
+          const cell = document.createElement("div");
+          cell.className = `cell fret-${fret}`;
+          cell.style.setProperty("--string-thickness", stringData.thickness);
+
+          if (stringIndex === 2 && MARKER_FRETS.has(fret) && fret !== 12 && fret !== 24) {
+            const inlay = document.createElement("span");
+            inlay.className = "inlay single";
+            cell.appendChild(inlay);
+          }
+
+          if ((fret === 12 || fret === 24) && (stringIndex === 1 || stringIndex === 4)) {
+            const inlay = document.createElement("span");
+            inlay.className = `inlay double ${stringIndex === 1 ? "top" : "bottom"}`;
+            cell.appendChild(inlay);
+          }
+
+          const note = document.createElement("span");
+          const shouldShowOutsideNote = showOutsideNotesToggle.checked;
+          const noteStateClass = isBlue
+            ? "blue-note"
+            : isExtended && isRoot
+              ? "extended-root"
+              : isExtended
+                ? "extended"
+                : shouldHighlight && isRoot
+                  ? "root"
+                  : shouldHighlight
+                    ? "scale"
+                    : isInScale
+                      ? "out-of-position"
+                      : shouldShowOutsideNote
+                        ? ""
+                        : "hidden-note";
+
+          note.className = `note ${noteStateClass}`;
+          note.innerHTML = getDisplayText(root, noteName, shouldHighlight, mode);
+          note.title = `${stringData.label} string, fret ${fret}: ${noteName} / ${getScaleDegree(root, noteName, mode)} / ${mode.shortName}${isBlue ? " / Blue note" : ""}`;
+
+          if (shouldHighlight) {
+            note.dataset.midi = String(pitchAt(stringData, fret));
+            note.dataset.noteName = noteName;
+            note.dataset.stringIndex = String(stringIndex);
+            note.dataset.fret = String(fret);
+          }
+
+          cell.appendChild(note);
+          fretboard.appendChild(cell);
+        }
+      });
+
+      if (wasPlaying) {
+        playVisibleNotes();
+      }
+    }
+
+    populateKeyButtons();
+    populateModeButtons();
+    initialiseFretWindowControls();
+    updateDirectionButtons();
+    renderFretboard(selectedRoot);
+
+    flatKeyToggle.addEventListener("change", () => {
+      updateKeyButtons();
+      renderFretboard(selectedRoot);
+    });
+
+    positionSelect.addEventListener("change", () => {
+      alignFretWindowToPentatonicPosition();
+      renderFretboard(selectedRoot);
+    });
+
+    includeBlueNoteToggle.addEventListener("change", () => {
+      renderFretboard(selectedRoot);
+    });
+
+    showOutsideNotesToggle.addEventListener("change", () => {
+      renderFretboard(selectedRoot);
+    });
+
+    threeNotesPerStringToggle.addEventListener("change", () => {
+      renderFretboard(selectedRoot);
+    });
+
+    extendedModalPatternToggle.addEventListener("change", () => {
+      renderFretboard(selectedRoot);
+    });
+
+    playVisibleNotesButton.addEventListener("click", () => {
+      playVisibleNotes();
+    });
+
+    stopPlaybackButton.addEventListener("click", () => {
+      clearPlayback();
+      updateFretWindowControls();
+    });
+
+    directionButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        selectedPlaybackDirection = button.dataset.direction;
+        updateDirectionButtons();
+
+        if (isPlaying) {
+          playVisibleNotes();
+        }
+      });
+    });
+
+    repeatPlaybackToggle.addEventListener("change", () => {
+      repeatPlayback = repeatPlaybackToggle.checked;
+    });
+
+    bpmInput.addEventListener("change", () => {
+      selectedBpm = Math.max(40, Math.min(220, Number(bpmInput.value) || 90));
+      bpmInput.value = String(selectedBpm);
+    });
+
+    bpmInput.addEventListener("input", () => {
+      selectedBpm = Math.max(40, Math.min(220, Number(bpmInput.value) || 90));
+    });
+
+    subdivisionSelect.addEventListener("change", () => {
+      selectedSubdivision = Math.max(1, Math.min(4, Number(subdivisionSelect.value) || 1));
+
+      if (isPlaying) {
+        playVisibleNotes();
+      }
+    });
+
+    showIntervalsToggle.addEventListener("change", () => {
+      renderFretboard(selectedRoot);
+    });
+  </script>
+</body>
+</html>

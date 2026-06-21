@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "FretSensei",
+    "slug": "fretsensei",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "fretsensei",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.proffyn.fretsensei"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f1115"
+      },
+      "package": "com.proffyn.fretsensei"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": ["expo-router"]
+  }
+}
