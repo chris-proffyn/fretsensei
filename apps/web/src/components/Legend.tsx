@@ -1,6 +1,10 @@
-export function Legend() {
+interface LegendProps {
+  modal?: boolean;
+}
+
+export function Legend({ modal = false }: LegendProps) {
   return (
-    <div className="legend">
+    <div className={`legend${modal ? ' modal-legend' : ''}`}>
       <span className="legend-item">
         <span className="dot root" /> Root
       </span>

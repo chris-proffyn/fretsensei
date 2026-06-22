@@ -49,3 +49,13 @@ export function computeFretboardDisplayScale(
 
   return Math.min(viewportWidth / width, viewportHeight / height);
 }
+
+export function computeFretboardFillWidthScale(viewportWidth: number): number {
+  const { width } = FRETBOARD_DISPLAY_BASE_SIZE;
+
+  if (width <= 0 || viewportWidth <= 0 || !Number.isFinite(viewportWidth)) {
+    return 1;
+  }
+
+  return viewportWidth / width;
+}

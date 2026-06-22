@@ -1,6 +1,7 @@
 import {
   buildDiatonicDefaultView,
   getModeById,
+  getPentatonicPositionsForMode,
   isPentatonicMode,
   MODES,
   NATURAL_KEYS,
@@ -20,8 +21,6 @@ interface SettingsPanelProps {
   state: VisualiserState;
   dispatch: Dispatch<VisualiserAction>;
 }
-
-const POSITIONS: PentatonicShapePosition[] = ['1', '2', '3', '4', '5'];
 
 const DIATONIC_MODES = MODES.filter((mode) => !isPentatonicMode(mode));
 const PENTATONIC_MODES = MODES.filter((mode) => isPentatonicMode(mode));
@@ -83,10 +82,10 @@ function getLivePentatonicPosition(
     return configuredDefault;
   }
 
-  const firstSelected = POSITIONS.find((position) =>
+  const firstSelected = getPentatonicPositionsForMode(modeId).find((position) =>
     state.selectedPentatonicPositions.includes(position),
   );
-  return firstSelected ?? '1';
+  return firstSelected ?? getPentatonicPositionsForMode(modeId)[0] ?? '1';
 }
 
 export function getLiveEditingTarget(state: VisualiserState): EditingTarget {
@@ -446,9 +445,11 @@ export function SettingsPanel({
                 </tr>
               </thead>
               <tbody>
-                {PENTATONIC_MODES.flatMap((mode) =>
-                  NATURAL_KEYS.flatMap((keyDef, keyIndex) =>
-                    POSITIONS.map((position, positionIndex) => {
+                {PENTATONIC_MODES.flatMap((mode) => {
+                  const modePositions = getPentatonicPositionsForMode(mode.id);
+
+                  return NATURAL_KEYS.flatMap((keyDef, keyIndex) =>
+                    modePositions.map((position, positionIndex) => {
                       const key = keyDef.natural;
                       const defaults = getPositionDefaultView(
                         state,
@@ -467,7 +468,8 @@ export function SettingsPanel({
                         position,
                       );
                       const isFirstKeyRow = positionIndex === 0;
-                      const isLastKeyRow = positionIndex === POSITIONS.length - 1;
+                      const isLastKeyRow =
+                        positionIndex === modePositions.length - 1;
 
                       return (
                         <tr
@@ -577,8 +579,8 @@ export function SettingsPanel({
                         </tr>
                       );
                     }),
-                  ),
-                )}
+                  );
+                })}
               </tbody>
             </table>
           </div>

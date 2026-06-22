@@ -6,6 +6,7 @@ interface OptionsRowProps {
   activeMode: ActiveModeViewModel;
   isFullNeck: boolean;
   dispatch: UseVisualiserStateReturn['dispatch'];
+  modal?: boolean;
 }
 
 export function OptionsRow({
@@ -13,12 +14,16 @@ export function OptionsRow({
   activeMode,
   isFullNeck,
   dispatch,
+  modal = false,
 }: OptionsRowProps) {
   const canUseExtended =
     (activeMode.isModal || activeMode.isPentatonic) && !isFullNeck;
 
   return (
-    <div className="options-row" aria-label="Display and pattern options">
+    <div
+      className={`options-row${modal ? ' modal-options-row' : ''}`}
+      aria-label="Display and pattern options"
+    >
       <label className="checkbox-row option-checkbox">
         <input
           type="checkbox"
@@ -44,6 +49,7 @@ export function OptionsRow({
           }
         />
         <span>3 notes per string</span>
+        {modal ? <span className="option-short-label">3NPS</span> : null}
       </label>
 
       <label className="checkbox-row option-checkbox">
@@ -59,6 +65,7 @@ export function OptionsRow({
           }
         />
         <span>Extended pattern</span>
+        {modal ? <span className="option-short-label">Ext</span> : null}
       </label>
 
       <label className="checkbox-row option-checkbox">
@@ -74,6 +81,7 @@ export function OptionsRow({
           }
         />
         <span>One octave</span>
+        {modal ? <span className="option-short-label">1Oct</span> : null}
       </label>
 
       <label className="checkbox-row option-checkbox">
@@ -88,6 +96,7 @@ export function OptionsRow({
           }
         />
         <span>Scale degree</span>
+        {modal ? <span className="option-short-label">Degree</span> : null}
       </label>
 
       <label className="checkbox-row option-checkbox">
@@ -107,6 +116,7 @@ export function OptionsRow({
           }
         />
         <span>Include Upper</span>
+        {modal ? <span className="option-short-label">Upper</span> : null}
       </label>
     </div>
   );

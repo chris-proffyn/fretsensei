@@ -35,7 +35,6 @@ interface PlaybackControlsProps {
   dispatch: Dispatch<VisualiserAction>;
   onBpmMessage?: (message: string | null) => void;
   compact?: boolean;
-  displaySummary?: string;
 }
 
 export function PlaybackControls({
@@ -48,7 +47,6 @@ export function PlaybackControls({
   dispatch,
   onBpmMessage,
   compact = false,
-  displaySummary,
 }: PlaybackControlsProps) {
   const [showFullNeckModal, setShowFullNeckModal] = useState(false);
   const [showSubdivisionModal, setShowSubdivisionModal] = useState(false);
@@ -114,20 +112,8 @@ export function PlaybackControls({
   if (compact) {
     return (
       <>
-        <View style={styles.compactRow}>
-          {displaySummary ? (
-            <Text
-              style={styles.displaySummary}
-              accessibilityRole="text"
-              accessibilityLabel={displaySummary}
-              numberOfLines={1}
-            >
-              {displaySummary}
-            </Text>
-          ) : null}
-
-          <View style={styles.compactControls}>
-            <View style={styles.transport}>
+        <View style={styles.compactControls}>
+          <View style={styles.transport}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Play visible notes"
@@ -180,25 +166,24 @@ export function PlaybackControls({
             </Pressable>
           </View>
 
-            <TextInput
-              style={styles.compactBpmInput}
-              keyboardType="number-pad"
-              accessibilityLabel={MOBILE_PLAYBACK_LABELS.bpm.full}
-              value={draftBpm}
-              onChangeText={setDraftBpm}
-              onEndEditing={commitBpm}
-              onSubmitEditing={commitBpm}
-            />
+          <TextInput
+            style={styles.compactBpmInput}
+            keyboardType="number-pad"
+            accessibilityLabel={MOBILE_PLAYBACK_LABELS.bpm.full}
+            value={draftBpm}
+            onChangeText={setDraftBpm}
+            onEndEditing={commitBpm}
+            onSubmitEditing={commitBpm}
+          />
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={MOBILE_PLAYBACK_LABELS.subdivision.full}
-              style={styles.subdivisionTrigger}
-              onPress={() => setShowSubdivisionModal(true)}
-            >
-              <SubdivisionIcon subdivision={state.subdivision} size={16} />
-            </Pressable>
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={MOBILE_PLAYBACK_LABELS.subdivision.full}
+            style={styles.subdivisionTrigger}
+            onPress={() => setShowSubdivisionModal(true)}
+          >
+            <SubdivisionIcon subdivision={state.subdivision} size={16} />
+          </Pressable>
         </View>
 
         <SubdivisionPickerModal
@@ -308,25 +293,13 @@ const styles = StyleSheet.create({
   container: {
     gap: 12,
   },
-  compactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minWidth: 0,
-  },
-  displaySummary: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '700',
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-  },
   compactControls: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: 6,
-    flexShrink: 0,
+    minWidth: 0,
   },
   transport: {
     flexDirection: 'row',

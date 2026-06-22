@@ -3,15 +3,20 @@ import { MODES } from '@fretsensei/utils';
 interface ModeSelectorProps {
   selectedModeId: string;
   onSelectMode: (modeId: string) => void;
+  modal?: boolean;
 }
 
-export function ModeSelector({ selectedModeId, onSelectMode }: ModeSelectorProps) {
+export function ModeSelector({
+  selectedModeId,
+  onSelectMode,
+  modal = false,
+}: ModeSelectorProps) {
   return (
-    <div className="control-block mode-block">
-      <label htmlFor="mode-buttons">Mode</label>
+    <div className={`control-block mode-block${modal ? ' modal-picker-block' : ''}`}>
+      {!modal ? <label htmlFor="mode-buttons">Mode</label> : null}
       <div
         id="mode-buttons"
-        className="button-row mode-buttons"
+        className={`button-row mode-buttons${modal ? ' modal-mode-grid' : ''}`}
         role="group"
         aria-label="Choose mode"
       >

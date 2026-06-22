@@ -52,7 +52,14 @@ export function HeroHeader() {
           <source srcSet="/logo-lite.svg" media="(prefers-color-scheme: dark)" />
           <img src="/logo.svg" alt="ModeWise" className="hero-logo" />
         </picture>
-        <h1>{APP_TITLE}</h1>
+        <h1 className="hero-title">
+          <span className="hero-brand">
+            <span className="hero-brand-mode">Mode</span>
+            <span className="hero-brand-wise">Wise</span>
+          </span>
+          <span className="hero-title-separator"> - </span>
+          <span className="hero-tagline">{APP_TITLE}</span>
+        </h1>
         <button
           type="button"
           className="hero-info-button"

@@ -18,7 +18,10 @@ export function FretboardSection({
   maximized = false,
 }: FretboardSectionProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const displayScale = useFretboardDisplayScale(wrapRef, maximized);
+  const displayScale = useFretboardDisplayScale(
+    wrapRef,
+    maximized ? 'fit' : 'fill-width',
+  );
   const displayStyle = {
     '--fret-scale': displayScale,
   } as CSSProperties;

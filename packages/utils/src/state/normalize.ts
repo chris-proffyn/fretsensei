@@ -2,23 +2,9 @@ import { MAX_FRET_WINDOW_WIDTH } from '../constants/notes';
 import { getModeById, isPentatonicMode } from '../constants/modes';
 import { clampFretWindow, isFullNeckSelected } from '../fretboard/fret-range';
 import { resolvePentatonicFretWindow } from '../constants/layout-config';
+import { normalizePentatonicPositionsForMode } from '../constants/pentatonic-positions';
 import { clampBpm } from '../playback/sequence';
-import type { PentatonicShapePosition, VisualiserState } from '../types';
-
-const PENTATONIC_POSITION_ORDER: PentatonicShapePosition[] = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-];
-
-function normalizePentatonicPositions(
-  positions: PentatonicShapePosition[],
-): PentatonicShapePosition[] {
-  const unique = new Set(positions.filter((position) => PENTATONIC_POSITION_ORDER.includes(position)));
-  return PENTATONIC_POSITION_ORDER.filter((position) => unique.has(position));
-}
+import type { VisualiserState } from '../types';
 
 export function normalizeVisualiserState(
   state: VisualiserState,
@@ -26,7 +12,10 @@ export function normalizeVisualiserState(
   const mode = getModeById(state.selectedModeId);
   const isPentatonic = isPentatonicMode(mode);
   const selectedPentatonicPositions = isPentatonic
-    ? normalizePentatonicPositions(state.selectedPentatonicPositions)
+    ? normalizePentatonicPositionsForMode(
+        state.selectedModeId,
+        state.selectedPentatonicPositions,
+      )
     : [];
 
   let selectedFretStart = state.selectedFretStart;

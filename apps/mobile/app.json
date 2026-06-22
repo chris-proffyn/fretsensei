@@ -16,6 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.proffyn.fretsensei",
+      "infoPlist": {
+        "CFBundleDisplayName": "ModeWise"
+      },
       "splash": {
         "image": "./assets/splash.png",
         "resizeMode": "contain",

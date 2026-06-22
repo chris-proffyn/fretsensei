@@ -14,9 +14,7 @@ import { getSelectedKey } from '../music-theory/key';
 import { NATURAL_KEYS } from './keys';
 import { MAX_FRET_WINDOW_WIDTH } from './notes';
 import { MODES, getModeById, isPentatonicMode } from './modes';
-import { PENTATONIC_POSITION_WINDOWS } from './pentatonic-positions';
-
-const PENTATONIC_POSITIONS: PentatonicShapePosition[] = ['1', '2', '3', '4', '5'];
+import { PENTATONIC_POSITION_WINDOWS, getPentatonicPositionsForMode } from './pentatonic-positions';
 
 const DIATONIC_DEFAULT_WINDOW_WIDTH = 4;
 const DORIAN_DEFAULT_WINDOW_WIDTH = 5;
@@ -51,9 +49,9 @@ function clonePentatonicPositionWindows(): LayoutConfig['pentatonicPositionWindo
     Object.entries(PENTATONIC_POSITION_WINDOWS).map(([modeId, positions]) => [
       modeId,
       Object.fromEntries(
-        PENTATONIC_POSITIONS.map((position) => [
+        Object.entries(positions).map(([position, range]) => [
           position,
-          [...positions[position]] as [number, number],
+          [...range] as [number, number],
         ]),
       ),
     ]),
@@ -96,7 +94,7 @@ function buildDefaultPentatonicKeyDefaults(): PentatonicKeyDefaultsMap {
 
     for (const key of NATURAL_KEY_ORDER) {
       const positions = Object.fromEntries(
-        PENTATONIC_POSITIONS.map((position) => [
+        getPentatonicPositionsForMode(mode.id).map((position) => [
           position,
           buildPositionDefaultView(mode.id, key, position),
         ]),
@@ -255,9 +253,9 @@ export function cloneLayoutConfig(config: LayoutConfig): LayoutConfig {
       Object.entries(config.pentatonicPositionWindows).map(([modeId, positions]) => [
         modeId,
         Object.fromEntries(
-          PENTATONIC_POSITIONS.map((position) => [
+          Object.entries(positions).map(([position, range]) => [
             position,
-            [...positions[position]] as [number, number],
+            [...range] as [number, number],
           ]),
         ),
       ]),
@@ -284,9 +282,9 @@ export function cloneLayoutConfig(config: LayoutConfig): LayoutConfig {
               {
                 defaultPosition: settings.defaultPosition,
                 positions: Object.fromEntries(
-                  PENTATONIC_POSITIONS.map((position) => [
+                  Object.entries(settings.positions).map(([position, view]) => [
                     position,
-                    { ...settings.positions[position] },
+                    { ...view },
                   ]),
                 ),
               },

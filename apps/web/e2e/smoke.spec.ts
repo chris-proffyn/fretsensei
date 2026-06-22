@@ -28,11 +28,13 @@ test.describe('ModeWise web smoke', () => {
     await expect(page.getByTestId('play-button')).toBeEnabled();
   });
 
-  test('changes mode and updates the scale map', async ({ page }) => {
+  test('changes mode from the toolbar modal', async ({ page }) => {
     await page.goto('/');
 
+    await page.getByTestId('toolbar-mode-button').click();
     await page.getByRole('button', { name: 'Dorian' }).click();
 
-    await expect(page.getByLabel('Scale interval and note map')).toContainText('b3');
+    await expect(page.getByTestId('toolbar-mode-button')).toHaveTextContent('Dorian');
+    await expect(page.getByLabel('Scale interval and note map')).toHaveCount(0);
   });
 });

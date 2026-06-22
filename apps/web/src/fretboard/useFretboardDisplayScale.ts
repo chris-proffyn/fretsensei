@@ -1,18 +1,18 @@
 import { useEffect, useState, type RefObject } from 'react';
-import { computeFretboardDisplayScale } from './displayMetrics';
+import {
+  computeFretboardDisplayScale,
+  computeFretboardFillWidthScale,
+} from './displayMetrics';
+
+export type FretboardDisplayScaleMode = 'fill-width' | 'fit';
 
 export function useFretboardDisplayScale(
   containerRef: RefObject<HTMLElement | null>,
-  enabled: boolean,
+  mode: FretboardDisplayScaleMode = 'fill-width',
 ): number {
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
-    if (!enabled) {
-      setScale(1);
-      return;
-    }
-
     const node = containerRef.current;
     if (!node) {
       return;
@@ -20,7 +20,11 @@ export function useFretboardDisplayScale(
 
     const update = () => {
       const { width, height } = node.getBoundingClientRect();
-      setScale(computeFretboardDisplayScale(width, height));
+      const nextScale =
+        mode === 'fit'
+          ? computeFretboardDisplayScale(width, height)
+          : computeFretboardFillWidthScale(width);
+      setScale(nextScale);
     };
 
     update();
@@ -28,7 +32,7 @@ export function useFretboardDisplayScale(
     observer.observe(node);
 
     return () => observer.disconnect();
-  }, [containerRef, enabled]);
+  }, [containerRef, mode]);
 
   return scale;
 }

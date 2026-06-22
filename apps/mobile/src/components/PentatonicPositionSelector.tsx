@@ -1,49 +1,51 @@
-import type { PentatonicShapePosition } from '@fretsensei/utils';
+import {
+  getPentatonicPositionButtonAriaLabel,
+  getPentatonicPositionsForMode,
+  type PentatonicShapePosition,
+} from '@fretsensei/utils';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { mobileStyles } from './sharedStyles';
 
-const POSITIONS: PentatonicShapePosition[] = ['1', '2', '3', '4', '5'];
-
 interface PentatonicPositionSelectorProps {
+  modeId: string;
   visible: boolean;
   value: PentatonicShapePosition[];
   onToggle: (position: PentatonicShapePosition) => void;
-  compact?: boolean;
-}
-
-function getPositionAriaLabel(position: PentatonicShapePosition): string {
-  return `Position ${position}`;
+  modal?: boolean;
 }
 
 export function PentatonicPositionSelector({
+  modeId,
   visible,
   value,
   onToggle,
-  compact = false,
+  modal = false,
 }: PentatonicPositionSelectorProps) {
   if (!visible) {
     return null;
   }
 
+  const positions = getPentatonicPositionsForMode(modeId);
+
   return (
-    <View style={[styles.container, compact && styles.containerCompact]}>
-      <Text style={mobileStyles.sectionLabel}>Pos</Text>
+    <View style={[styles.container, modal && styles.modalContainer]}>
+      {!modal ? <Text style={mobileStyles.sectionLabel}>Pos</Text> : null}
       <View
         style={styles.buttonRow}
         accessibilityRole="none"
         accessibilityLabel="Pentatonic position"
       >
-        {POSITIONS.map((position) => {
+        {positions.map((position) => {
           const isActive = value.includes(position);
           return (
             <Pressable
               key={position}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
-              accessibilityLabel={getPositionAriaLabel(position)}
+              accessibilityLabel={getPentatonicPositionButtonAriaLabel(position)}
               style={[
                 styles.positionButton,
-                compact && styles.positionButtonCompact,
+                modal && styles.positionButtonModal,
                 isActive && mobileStyles.chipActive,
               ]}
               onPress={() => onToggle(position)}
@@ -51,7 +53,7 @@ export function PentatonicPositionSelector({
               <Text
                 style={[
                   mobileStyles.chipText,
-                  compact && mobileStyles.chipTextCompact,
+                  modal && styles.positionButtonTextModal,
                   isActive && mobileStyles.chipTextActive,
                 ]}
               >
@@ -69,24 +71,26 @@ const styles = StyleSheet.create({
   container: {
     gap: 8,
   },
-  containerCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  modalContainer: {
+    gap: 8,
   },
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 8,
     flex: 1,
   },
   positionButton: {
     ...mobileStyles.chip,
     minWidth: 36,
   },
-  positionButtonCompact: {
+  positionButtonModal: {
     ...mobileStyles.chipCompact,
-    minWidth: 28,
-    minHeight: 28,
+    minWidth: 44,
+    minHeight: 40,
+  },
+  positionButtonTextModal: {
+    fontSize: 15,
+    fontWeight: '800',
   },
 });

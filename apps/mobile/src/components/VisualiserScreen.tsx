@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
 import { useMobileLayout } from '../hooks/useMobileLayout';
 import { colors } from '../theme/tokens';
-import { ControlsPanel } from './ControlsPanel';
 import { FretboardGrid } from './FretboardGrid';
 import { MobileToolbar } from './MobileToolbar';
 import { ScreenReaderSummary } from './ScreenReaderSummary';
@@ -63,8 +62,6 @@ export function VisualiserScreen({
       nestedScrollEnabled
     >
       <ScreenReaderSummary viewModel={viewModel} />
-
-      <ControlsPanel state={state} viewModel={viewModel} dispatch={dispatch} />
 
       <MobileToolbar
         state={state}

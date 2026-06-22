@@ -10,9 +10,10 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
 import { colors } from '../theme/tokens';
-import { getMobileDisplaySummary } from '../utils/displaySummary';
 import { PlaybackControls } from './PlaybackControls';
 import { StatusBanner } from './StatusBanner';
+import { LegendToolbarButton } from './LegendToolbarButton';
+import { ToolbarControls } from './ToolbarControls';
 
 interface MobileToolbarProps {
   state: VisualiserState;
@@ -40,25 +41,30 @@ export function MobileToolbar({
     state.extendedPattern,
   );
   const bannerMessage = bpmMessage ?? playbackStatus.message;
-  const displaySummary = getMobileDisplaySummary(
-    viewModel,
-    state.selectedPentatonicPositions,
-  );
 
   return (
     <View style={styles.wrapper}>
-      <PlaybackControls
-        compact
-        displaySummary={displaySummary}
-        state={state}
-        session={playback.session}
-        isPlaying={playback.isPlaying}
-        isFullNeck={viewModel.fretRange.isFullNeck}
-        onPlay={playback.startPlayback}
-        onStop={playback.stopPlayback}
-        dispatch={dispatch}
-        onBpmMessage={setBpmMessage}
-      />
+      <View style={styles.toolbarRow}>
+        <ToolbarControls
+          state={state}
+          viewModel={viewModel}
+          dispatch={dispatch}
+        />
+
+        <PlaybackControls
+          compact
+          state={state}
+          session={playback.session}
+          isPlaying={playback.isPlaying}
+          isFullNeck={viewModel.fretRange.isFullNeck}
+          onPlay={playback.startPlayback}
+          onStop={playback.stopPlayback}
+          dispatch={dispatch}
+          onBpmMessage={setBpmMessage}
+        />
+
+        <LegendToolbarButton />
+      </View>
 
       {bannerMessage ? (
         <StatusBanner status={playbackStatus} bpmMessage={bpmMessage} />
@@ -76,5 +82,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     gap: 8,
+  },
+  toolbarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
   },
 });

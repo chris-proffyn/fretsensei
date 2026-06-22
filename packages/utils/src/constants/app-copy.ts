@@ -1,3 +1,5 @@
+export const APP_NAME = 'ModeWise';
+
 export const APP_TITLE = 'Guitar Mode Mastery';
 
 export const APP_DESCRIPTION =

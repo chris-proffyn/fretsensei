@@ -14,6 +14,7 @@ export * from './music-theory/key';
 
 export * from './fretboard/fret-range';
 export * from './fretboard/pentatonic-position';
+export * from './fretboard/pentatonic-position-toolbar';
 export * from './fretboard/extended-pattern';
 export * from './fretboard/compact-range';
 export * from './fretboard/three-notes-per-string';

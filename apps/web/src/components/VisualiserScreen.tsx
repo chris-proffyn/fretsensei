@@ -2,12 +2,10 @@ import type { FretboardViewModel, VisualiserAction, VisualiserState } from '@fre
 import type { Dispatch } from 'react';
 import { useEffect, useState } from 'react';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
-import { ControlsPanel } from './ControlsPanel';
 import { FretboardSection } from './FretboardSection';
 import { FretFocusPanel } from './FretFocusPanel';
 import { HeroHeader } from './HeroHeader';
 import { ScreenReaderSummary } from './ScreenReaderSummary';
-import { SettingsIcon } from './SettingsIcon';
 import { SettingsPanel } from './SettingsPanel';
 
 interface VisualiserScreenProps {
@@ -80,9 +78,7 @@ export function VisualiserScreen({
       <main className="page" id="main-content">
         <div className="page-header-row">
           <HeroHeader />
-          <SettingsIcon onClick={() => setSettingsOpen(true)} />
         </div>
-        <ControlsPanel state={state} viewModel={viewModel} dispatch={dispatch} />
         <ScreenReaderSummary viewModel={viewModel} />
 
         <section className="fretboard-card">

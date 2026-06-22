@@ -29,12 +29,24 @@ function TestVisualiser() {
   );
 }
 
+async function openKeyModal(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByTestId('toolbar-key-button'));
+}
+
+async function openModeModal(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByTestId('toolbar-mode-button'));
+}
+
+async function openOptionsModal(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByTestId('toolbar-options-button'));
+}
+
 describe('VisualiserScreen', () => {
   it('renders default C Ionian focused fret window', () => {
     render(<TestVisualiser />);
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'Guitar Mode Mastery',
+      'ModeWise - Guitar Mode Mastery',
     );
     expect(
       screen.getByText(/Select a key and mode to see every note/i),
@@ -42,7 +54,8 @@ describe('VisualiserScreen', () => {
     expect(
       screen.getByLabelText('Selected fret range 7-10'),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Choose key')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar-key-button')).toHaveTextContent('C');
+    expect(screen.getByTestId('toolbar-mode-button')).toHaveTextContent('Ionian');
   });
 
   it('shows the app description when the info button is clicked', async () => {
@@ -60,20 +73,21 @@ describe('VisualiserScreen', () => {
     const user = userEvent.setup();
     render(<TestVisualiser />);
 
+    await openKeyModal(user);
+
     const keyGroup = screen.getByLabelText('Choose key');
     const dButton = within(keyGroup).getByRole('button', { name: 'D' });
     await user.click(dButton);
 
+    expect(screen.getByTestId('toolbar-key-button')).toHaveTextContent('D');
     expect(dButton).toHaveAttribute('aria-pressed', 'true');
-    expect(within(keyGroup).getByRole('button', { name: 'C' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
   });
 
   it('updates active mode button when a new mode is selected', async () => {
     const user = userEvent.setup();
     render(<TestVisualiser />);
+
+    await openModeModal(user);
 
     const modeGroup = screen.getByLabelText('Choose mode');
     const dorianButton = within(modeGroup).getByRole('button', {
@@ -81,59 +95,95 @@ describe('VisualiserScreen', () => {
     });
     await user.click(dorianButton);
 
+    expect(screen.getByTestId('toolbar-mode-button')).toHaveTextContent('Dorian');
     expect(dorianButton).toHaveAttribute('aria-pressed', 'true');
-
-    const scaleMap = screen.getByLabelText('Scale interval and note map');
-    expect(within(scaleMap).getByText('b3')).toBeInTheDocument();
   });
 
   it('hides pentatonic position control for non-pentatonic modes', () => {
     render(<TestVisualiser />);
 
-    expect(
-      screen.queryByRole('group', { name: /pentatonic position/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('toolbar-position-button')).not.toBeInTheDocument();
   });
 
   it('shows pentatonic position control for pentatonic modes', async () => {
     const user = userEvent.setup();
     render(<TestVisualiser />);
 
+    await openModeModal(user);
     const modeGroup = screen.getByLabelText('Choose mode');
     await user.click(
       within(modeGroup).getByRole('button', { name: 'Minor Pentatonic' }),
     );
 
+    expect(screen.getByTestId('toolbar-position-button')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar-position-button')).toHaveTextContent('Pos1');
+
+    await user.click(screen.getByTestId('toolbar-position-button'));
+
     const positionGroup = screen.getByRole('group', { name: 'Pentatonic position' });
     expect(positionGroup).toBeInTheDocument();
     expect(within(positionGroup).getByRole('button', { name: 'Position 1' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'All positions' })).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: /blue note/i })).not.toBeDisabled();
+  });
+
+  it('allows multiple pentatonic positions from the toolbar modal', async () => {
+    const user = userEvent.setup();
+    render(<TestVisualiser />);
+
+    await openModeModal(user);
+    await user.click(
+      within(screen.getByLabelText('Choose mode')).getByRole('button', {
+        name: 'Minor Pentatonic',
+      }),
+    );
+
+    await user.click(screen.getByTestId('toolbar-position-button'));
+    await user.click(screen.getByRole('button', { name: 'Position 3' }));
+
+    expect(screen.getByTestId('toolbar-position-button')).toHaveTextContent('Pos1+3');
   });
 
   it('disables blue note for non-pentatonic modes', async () => {
     const user = userEvent.setup();
     render(<TestVisualiser />);
 
+    await openModeModal(user);
     const modeGroup = screen.getByLabelText('Choose mode');
     await user.click(
       within(modeGroup).getByRole('button', { name: 'Minor Pentatonic' }),
     );
+
+    await openOptionsModal(user);
     await user.click(screen.getByRole('checkbox', { name: /blue note/i }));
-    await user.click(within(modeGroup).getByRole('button', { name: 'Ionian' }));
+
+    await openModeModal(user);
+    await user.click(within(screen.getByLabelText('Choose mode')).getByRole('button', { name: 'Ionian' }));
+
+    await openOptionsModal(user);
 
     expect(screen.getByRole('checkbox', { name: /blue note/i })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: /blue note/i })).not.toBeChecked();
   });
 
-  it('renders scale map with degree above note name', () => {
+  it('does not render the scale map in the mode modal', async () => {
+    const user = userEvent.setup();
     render(<TestVisualiser />);
 
-    const scaleMap = screen.getByLabelText('Scale interval and note map');
-    expect(within(scaleMap).getByText('1')).toBeInTheDocument();
-    expect(within(scaleMap).getByText('C')).toBeInTheDocument();
-    expect(within(scaleMap).getByText('7')).toBeInTheDocument();
-    expect(within(scaleMap).getByText('B')).toBeInTheDocument();
+    await openModeModal(user);
+
+    expect(
+      screen.queryByLabelText('Scale interval and note map'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens the legend modal from the toolbar', async () => {
+    const user = userEvent.setup();
+    render(<TestVisualiser />);
+
+    await user.click(screen.getByTestId('toolbar-legend-button'));
+
+    expect(screen.getByRole('heading', { name: 'Legend' })).toBeInTheDocument();
+    expect(screen.getByText('Outside notes')).toBeInTheDocument();
   });
 
   it('sets full neck when All button is clicked after focusing', async () => {
@@ -193,7 +243,7 @@ describe('VisualiserScreen', () => {
   it('renders playback transport and tempo controls', () => {
     render(<TestVisualiser />);
 
-    expect(screen.getByTestId('playback-panel-summary')).toHaveTextContent('C Ionian');
+    expect(screen.getByTestId('toolbar-controls')).toBeInTheDocument();
     expect(screen.getByTestId('play-button')).toBeInTheDocument();
     expect(screen.getByTestId('stop-button')).toBeInTheDocument();
     expect(screen.getByLabelText('BPM')).toBeInTheDocument();
@@ -212,7 +262,7 @@ describe('VisualiserScreen', () => {
     await user.click(screen.getByTestId('playback-panel-toggle'));
 
     expect(screen.getByTestId('fretboard-maximized-overlay')).toBeInTheDocument();
-    expect(screen.getByTestId('playback-panel-summary')).toHaveTextContent('C Ionian');
+    expect(screen.getByTestId('toolbar-mode-button')).toHaveTextContent('Ionian');
     expect(screen.getByTestId('play-button')).toBeInTheDocument();
     expect(screen.getAllByTestId('fretboard-wrap')).toHaveLength(1);
 
@@ -234,14 +284,18 @@ describe('VisualiserScreen', () => {
     expect(screen.queryByTestId('fretboard-maximized-overlay')).not.toBeInTheDocument();
   });
 
-  it('updates playback summary when key and mode change', async () => {
+  it('updates toolbar labels when key and mode change', async () => {
     const user = userEvent.setup();
     render(<TestVisualiser />);
 
-    await user.click(screen.getByRole('button', { name: 'D' }));
-    await user.click(screen.getByRole('button', { name: 'Dorian' }));
+    await openKeyModal(user);
+    await user.click(within(screen.getByLabelText('Choose key')).getByRole('button', { name: 'D' }));
 
-    expect(screen.getByTestId('playback-panel-summary')).toHaveTextContent('D Dorian');
+    await openModeModal(user);
+    await user.click(within(screen.getByLabelText('Choose mode')).getByRole('button', { name: 'Dorian' }));
+
+    expect(screen.getByTestId('toolbar-key-button')).toHaveTextContent('D');
+    expect(screen.getByTestId('toolbar-mode-button')).toHaveTextContent('Dorian');
   });
 
   it('shows BPM validation guidance when out of range', async () => {

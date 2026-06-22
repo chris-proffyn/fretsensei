@@ -1,36 +1,48 @@
-import type { PentatonicShapePosition } from '@fretsensei/utils';
+import {
+  getPentatonicPositionButtonAriaLabel,
+  getPentatonicPositionsForMode,
+  type PentatonicShapePosition,
+} from '@fretsensei/utils';
 
 interface PentatonicPositionSelectorProps {
+  modeId: string;
   visible: boolean;
   value: PentatonicShapePosition[];
   onToggle: (position: PentatonicShapePosition) => void;
-}
-
-const POSITIONS: PentatonicShapePosition[] = ['1', '2', '3', '4', '5'];
-
-function getPositionAriaLabel(position: PentatonicShapePosition): string {
-  return `Position ${position}`;
+  modal?: boolean;
 }
 
 export function PentatonicPositionSelector({
+  modeId,
   visible,
   value,
   onToggle,
+  modal = false,
 }: PentatonicPositionSelectorProps) {
   if (!visible) {
     return null;
   }
 
+  const positions = getPentatonicPositionsForMode(modeId);
+
   return (
-    <div className="control-block position-control">
-      <label htmlFor="pentatonic-position-buttons">Pentatonic position</label>
+    <div
+      className={`control-block position-control${modal ? ' modal-picker-block' : ''}`}
+    >
+      {!modal ? (
+        <label htmlFor="pentatonic-position-buttons">Pentatonic position</label>
+      ) : (
+        <p className="picker-modal-hint">
+          Select one or more positions. Tap again to deselect.
+        </p>
+      )}
       <div
         id="pentatonic-position-buttons"
-        className="button-row pentatonic-position-buttons"
+        className={`button-row pentatonic-position-buttons${modal ? ' modal-picker-grid' : ''}`}
         role="group"
         aria-label="Pentatonic position"
       >
-        {POSITIONS.map((position) => {
+        {positions.map((position) => {
           const isActive = value.includes(position);
 
           return (
@@ -38,8 +50,8 @@ export function PentatonicPositionSelector({
               key={position}
               type="button"
               aria-pressed={isActive}
-              aria-label={getPositionAriaLabel(position)}
-              title={getPositionAriaLabel(position)}
+              aria-label={getPentatonicPositionButtonAriaLabel(position)}
+              title={getPentatonicPositionButtonAriaLabel(position)}
               data-position={position}
               className={`position-button${isActive ? ' active' : ''}`}
               onClick={() => onToggle(position)}

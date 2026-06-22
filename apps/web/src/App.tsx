@@ -1,3 +1,4 @@
+import { APP_NAME } from '@fretsensei/utils';
 import { useEffect } from 'react';
 import { trackEvent } from './analytics/track';
 import { VisualiserScreen } from './components/VisualiserScreen';
@@ -9,6 +10,7 @@ export function App() {
   const playback = usePlaybackController({ state, viewModel, dispatch });
 
   useEffect(() => {
+    document.title = APP_NAME;
     trackEvent('visualiser_opened', { platform: 'web' });
   }, []);
 

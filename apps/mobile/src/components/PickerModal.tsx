@@ -1,4 +1,4 @@
-import type { ScaleMapItem } from '@fretsensei/utils';
+import type { ReactNode } from 'react';
 import {
   Modal,
   Pressable,
@@ -7,23 +7,23 @@ import {
   Text,
   View,
 } from 'react-native';
-import { colors } from '../theme/tokens';
 import { LANDSCAPE_MODAL_ORIENTATIONS } from '../constants/mobileLayout';
-import { Legend } from './Legend';
-import { ScaleMap } from './ScaleMap';
+import { colors } from '../theme/tokens';
 import { mobileStyles } from './sharedStyles';
 
-interface MobileInfoModalProps {
+interface PickerModalProps {
   visible: boolean;
-  scaleMapItems: ScaleMapItem[];
+  title: string;
   onClose: () => void;
+  children: ReactNode;
 }
 
-export function MobileInfoModal({
+export function PickerModal({
   visible,
-  scaleMapItems,
+  title,
   onClose,
-}: MobileInfoModalProps) {
+  children,
+}: PickerModalProps) {
   return (
     <Modal
       visible={visible}
@@ -35,29 +35,27 @@ export function MobileInfoModal({
       <Pressable
         style={styles.backdrop}
         accessibilityRole="button"
-        accessibilityLabel="Close scale and legend"
+        accessibilityLabel={`Close ${title.toLowerCase()}`}
         onPress={onClose}
       >
         <Pressable style={styles.card} onPress={() => {}}>
           <View style={styles.header}>
-            <Text style={styles.title}>Scale & legend</Text>
+            <Text style={styles.title}>{title}</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Close scale and legend"
+              accessibilityLabel={`Close ${title.toLowerCase()}`}
               style={styles.closeButton}
               onPress={onClose}
             >
               <Text style={styles.closeText}>Done</Text>
             </Pressable>
           </View>
-
           <ScrollView
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <ScaleMap items={scaleMapItems} />
-            <Legend compact showTitle />
+            {children}
           </ScrollView>
         </Pressable>
       </Pressable>
@@ -73,7 +71,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    maxHeight: '80%',
+    maxHeight: '82%',
     backgroundColor: colors.panel,
     borderRadius: 16,
     borderWidth: 1,
@@ -109,6 +107,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 14,
-    gap: 16,
+    gap: 14,
   },
 });

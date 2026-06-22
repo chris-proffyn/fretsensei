@@ -96,6 +96,32 @@ body {
   flex-wrap: wrap;
 }
 
+.hero-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+}
+
+.hero-brand {
+  display: inline-flex;
+  align-items: baseline;
+  letter-spacing: -0.055em;
+}
+
+.hero-brand-mode {
+  color: var(--brand-mode);
+}
+
+.hero-brand-wise {
+  color: var(--brand-wise);
+}
+
+.hero-title-separator,
+.hero-tagline {
+  color: var(--text);
+}
+
 .hero-info-button {
   flex: 0 0 auto;
   display: inline-flex;
@@ -521,8 +547,181 @@ select:focus {
 .playback-toolbar {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.toolbar-picker-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.toolbar-picker-button,
+.toolbar-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.toolbar-picker-button-wide {
+  min-width: 5.5rem;
+}
+
+.toolbar-icon-button {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.toolbar-picker-button:hover,
+.toolbar-icon-button:hover {
+  color: var(--text);
+  border-color: rgba(255, 176, 32, 0.35);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+.toolbar-picker-button:focus-visible,
+.toolbar-icon-button:focus-visible {
+  outline: 3px solid rgba(255, 176, 32, 0.55);
+  outline-offset: 2px;
+}
+
+.picker-dialog {
+  width: min(92vw, 34rem);
+  max-height: 85vh;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 0;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.picker-dialog-mode {
+  width: min(92vw, 42rem);
+}
+
+.picker-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.picker-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.picker-dialog-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.picker-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.picker-dialog-body {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  overflow: auto;
+}
+
+.modal-picker-block {
+  display: grid;
+  gap: 10px;
+}
+
+.modal-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.1rem, 1fr));
+  gap: 8px;
+}
+
+.modal-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.modal-mode-grid .mode-button {
+  font-size: 0.84rem;
+  padding: 10px 12px;
+}
+
+.modal-flat-toggle {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.modal-options-row {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.modal-options-row .option-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.modal-options-row .option-short-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-legend {
+  display: grid;
+  gap: 10px;
+}
+
+.picker-modal-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .fret-window-summary {
@@ -541,7 +740,10 @@ select:focus {
   min-width: min(100%, 28rem);
 }
 
-.playback-toolbar .playback-panel-toggle {
+.playback-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 0 auto;
   margin-left: auto;
 }
@@ -918,8 +1120,14 @@ select:focus {
 }
 
 .fretboard-wrap {
+  width: 100%;
   overflow-x: auto;
   padding-bottom: 8px;
+}
+
+.fretboard-wrap .fretboard-display {
+  width: fit-content;
+  min-width: 100%;
 }
 
 .fretboard-display {
@@ -1278,6 +1486,10 @@ select:focus {
 
   .mode-buttons {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .modal-mode-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .controls {
