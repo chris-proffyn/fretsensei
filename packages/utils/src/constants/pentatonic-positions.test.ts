@@ -23,9 +23,12 @@ describe('pentatonic position constants', () => {
   });
 
   it('returns position windows from the constant map', () => {
+    expect(getPentatonicPositionWindow('minor-pentatonic', '2')).toEqual([2, 5]);
+    expect(getPentatonicPositionWindow('minor-pentatonic', '5')).toEqual([9, 12]);
     expect(getPentatonicPositionWindow('minor-pentatonic', '3')).toEqual([
       4, 8,
     ]);
     expect(PENTATONIC_POSITION_WINDOWS['major-pentatonic']['2']).toEqual([2, 5]);
+    expect(PENTATONIC_POSITION_WINDOWS['major-pentatonic']['4']).toEqual([7, 10]);
   });
 });

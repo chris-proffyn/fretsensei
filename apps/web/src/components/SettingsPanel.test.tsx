@@ -56,15 +56,15 @@ describe('SettingsPanel', () => {
     render(<TestSettingsPanel />);
 
     const startInput = screen.getByRole('spinbutton', {
-      name: 'Minor Pentatonic A position 3 starting fret',
+      name: 'Minor Pentatonic A position 1 starting fret',
     });
     await user.click(startInput);
 
     expect(screen.getByTestId('settings-editing-label')).toHaveTextContent(
-      'Active: Minor Pentatonic · A · Pos 3 · 9–13',
+      'Active: Minor Pentatonic · A · Pos 1 · 5–8',
     );
     expect(screen.getByTestId('fretboard-range')).toHaveTextContent(
-      'Frets 9–13',
+      'Frets 5–8',
     );
   });
 
@@ -117,7 +117,7 @@ describe('SettingsPanel', () => {
       kind: 'pentatonic',
       modeId: 'minor-pentatonic',
       key: 'A',
-      position: '3',
+      position: '1',
     });
   });
 });

@@ -1,25 +1,23 @@
-import { APP_NAME } from '@fretsensei/utils';
-import { useEffect } from 'react';
-import { trackEvent } from './analytics/track';
-import { VisualiserScreen } from './components/VisualiserScreen';
-import { usePlaybackController } from './hooks/usePlaybackController';
-import { useVisualiserState } from './hooks/useVisualiserState';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { HomeScreen } from './screens/HomeScreen';
+import { HowToScreen } from './screens/HowToScreen';
+import { PracticeScreen } from './screens/PracticeScreen';
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomeScreen />} />
+      <Route path="/practice" element={<PracticeScreen />} />
+      <Route path="/how-to" element={<HowToScreen />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 export function App() {
-  const { state, viewModel, dispatch } = useVisualiserState();
-  const playback = usePlaybackController({ state, viewModel, dispatch });
-
-  useEffect(() => {
-    document.title = APP_NAME;
-    trackEvent('visualiser_opened', { platform: 'web' });
-  }, []);
-
   return (
-    <VisualiserScreen
-      state={state}
-      viewModel={viewModel}
-      dispatch={dispatch}
-      playback={playback}
-    />
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }

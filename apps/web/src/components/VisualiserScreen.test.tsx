@@ -1,6 +1,28 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('react-router-dom', () => ({
+  Link: ({
+    to,
+    children,
+    className,
+    'aria-label': ariaLabel,
+    title,
+  }: {
+    to: string;
+    children: ReactNode;
+    className?: string;
+    'aria-label'?: string;
+    title?: string;
+  }) => (
+    <a href={to} className={className} aria-label={ariaLabel} title={title}>
+      {children}
+    </a>
+  ),
+}));
+
 import { VisualiserScreen } from '../components/VisualiserScreen';
 import { usePlaybackController } from '../hooks/usePlaybackController';
 import { useVisualiserState } from '../hooks/useVisualiserState';
@@ -49,24 +71,23 @@ describe('VisualiserScreen', () => {
       'ModeWise - Guitar Mode Mastery',
     );
     expect(
-      screen.getByText(/Select a key and mode to see every note/i),
-    ).not.toBeVisible();
-    expect(
       screen.getByLabelText('Selected fret range 7-10'),
     ).toBeInTheDocument();
     expect(screen.getByTestId('toolbar-key-button')).toHaveTextContent('C');
     expect(screen.getByTestId('toolbar-mode-button')).toHaveTextContent('Ionian');
   });
 
-  it('shows the app description when the info button is clicked', async () => {
-    const user = userEvent.setup();
+  it('renders practice navigation links to home and how-to guide', () => {
     render(<TestVisualiser />);
 
-    await user.click(screen.getByRole('button', { name: 'About this app' }));
-
-    expect(
-      screen.getByText(/Select a key and mode to see every note/i),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Return to homepage/i })).toHaveAttribute(
+      'href',
+      '/',
+    );
+    expect(screen.getByRole('link', { name: /How to use ModeWise/i })).toHaveAttribute(
+      'href',
+      '/how-to?source=practice',
+    );
   });
 
   it('updates active key button when a new key is selected', async () => {

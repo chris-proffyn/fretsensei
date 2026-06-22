@@ -184,7 +184,7 @@ describe('pentatonic position focus', () => {
     ).toBe(true);
   });
 
-  it('aligns A minor pentatonic position 3 fret window and shape', () => {
+  it('aligns A minor pentatonic position 1 fret window and shape', () => {
     const state = visualiserReducer(
       visualiserReducer(DEFAULT_STATE, {
         type: 'selectNaturalKey',
@@ -193,18 +193,18 @@ describe('pentatonic position focus', () => {
       { type: 'selectMode', modeId: 'minor-pentatonic' },
     );
 
-    expect(state.selectedPentatonicPositions).toEqual(['3']);
-    expect(state.selectedFretStart).toBe(9);
-    expect(state.selectedFretWidth).toBe(5);
+    expect(state.selectedPentatonicPositions).toEqual(['1']);
+    expect(state.selectedFretStart).toBe(5);
+    expect(state.selectedFretWidth).toBe(4);
 
     const viewModel = buildFretboardViewModel(state);
-    expect(viewModel.fretRange.start).toBe(9);
-    expect(viewModel.fretRange.end).toBe(13);
+    expect(viewModel.fretRange.start).toBe(5);
+    expect(viewModel.fretRange.end).toBe(8);
 
-    const eOnGString = getCell(viewModel, 2, 9);
-    expect(eOnGString?.noteName).toBe('E');
-    expect(eOnGString?.positionClassification).toBe('in-position');
-    expect(eOnGString?.visualState).toBe('scale');
+    const rootOnLowE = getCell(viewModel, 5, 5);
+    expect(rootOnLowE?.noteName).toBe('A');
+    expect(rootOnLowE?.positionClassification).toBe('in-position');
+    expect(rootOnLowE?.visualState).toBe('root');
   });
 
   it('preview applyModeKeyDefaultView switches diatonic mode, key, and fret window', () => {
@@ -261,16 +261,16 @@ describe('pentatonic position focus', () => {
           }),
           { type: 'selectMode', modeId: 'minor-pentatonic' },
         ),
-        { type: 'togglePentatonicPosition', position: '3' },
+        { type: 'togglePentatonicPosition', position: '1' },
       ),
       { type: 'togglePentatonicPosition', position: '2' },
     );
 
-    expect(state.selectedFretStart).toBe(8);
-    expect(state.selectedFretWidth).toBe(3);
+    expect(state.selectedFretStart).toBe(7);
+    expect(state.selectedFretWidth).toBe(4);
 
     const viewModel = buildFretboardViewModel(state);
-    expect(viewModel.fretRange.start).toBe(8);
+    expect(viewModel.fretRange.start).toBe(7);
     expect(viewModel.fretRange.end).toBe(10);
 
     const rootOnBString = getCell(viewModel, 1, 10);
@@ -284,6 +284,30 @@ describe('pentatonic position focus', () => {
     const lowEFret5 = getCell(viewModel, 5, 5);
     expect(lowEFret5?.noteName).toBe('A');
     expect(lowEFret5?.positionClassification).toBe('out-of-position');
+  });
+
+  it('aligns A major pentatonic position 4 fret window', () => {
+    const state = visualiserReducer(
+      visualiserReducer(
+        visualiserReducer(
+          visualiserReducer(DEFAULT_STATE, {
+            type: 'selectNaturalKey',
+            key: 'A',
+          }),
+          { type: 'selectMode', modeId: 'major-pentatonic' },
+        ),
+        { type: 'togglePentatonicPosition', position: '1' },
+      ),
+      { type: 'togglePentatonicPosition', position: '4' },
+    );
+
+    expect(state.selectedPentatonicPositions).toEqual(['4']);
+    expect(state.selectedFretStart).toBe(12);
+    expect(state.selectedFretWidth).toBe(4);
+
+    const viewModel = buildFretboardViewModel(state);
+    expect(viewModel.fretRange.start).toBe(12);
+    expect(viewModel.fretRange.end).toBe(15);
   });
 
   it('excludes upper-octave position notes from playback when Include Upper is enabled', () => {

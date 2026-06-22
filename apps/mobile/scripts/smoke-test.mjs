@@ -10,6 +10,10 @@ const mobileRoot = path.resolve(__dirname, '..');
 
 const requiredFiles = [
   'app/index.tsx',
+  'app/practice.tsx',
+  'app/how-to.tsx',
+  'src/screens/HomeScreen.tsx',
+  'src/hooks/usePracticeOrientation.ts',
   'src/components/VisualiserScreen.tsx',
   'src/playback/web-audio-engine.ts',
   'src/playback/create-playback-engine.ts',

@@ -115,8 +115,7 @@ function buildDefaultPentatonicKeyDefaults(): PentatonicKeyDefaultsMap {
       ) as Record<PentatonicShapePosition, PentatonicPositionDefaultView>;
 
       views[mode.id][key] = {
-        defaultPosition:
-          mode.id === 'minor-pentatonic' && key === 'A' ? '3' : '1',
+        defaultPosition: '1',
         positions,
       };
     }

@@ -60,3 +60,20 @@ jest.mock('react-native-audio-api', () => {
 
   return { AudioContext: MockAudioContext };
 });
+
+jest.mock('expo-screen-orientation', () => ({
+  lockAsync: jest.fn().mockResolvedValue(undefined),
+  OrientationLock: {
+    PORTRAIT_UP: 'PORTRAIT_UP',
+    LANDSCAPE: 'LANDSCAPE',
+    DEFAULT: 'DEFAULT',
+  },
+}));
+
+jest.mock('expo-router', () => ({
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  },
+}));

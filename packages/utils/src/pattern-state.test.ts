@@ -119,6 +119,16 @@ describe('pentatonic position ranges', () => {
     expect(getPositionRange('E', '1', mode)).toEqual([0, 3]);
   });
 
+  it('returns A pentatonic position windows from configured offsets', () => {
+    const minor = getModeById('minor-pentatonic');
+    const major = getModeById('major-pentatonic');
+
+    expect(getPositionRange('A', '2', minor)).toEqual([7, 10]);
+    expect(getPositionRange('A', '5', minor)).toEqual([14, 17]);
+    expect(getPositionRange('A', '2', major)).toEqual([7, 10]);
+    expect(getPositionRange('A', '4', major)).toEqual([12, 15]);
+  });
+
   it('matches upper position only when include upper is enabled', () => {
     const mode = getModeById('minor-pentatonic');
     const range = getPositionRange('A', '1', mode);

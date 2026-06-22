@@ -18,7 +18,8 @@
     "@fretsensei/ui": "*",
     "@fretsensei/utils": "*",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.1",

@@ -6,13 +6,15 @@ import {
   type VisualiserState,
 } from '@fretsensei/utils';
 import type { Dispatch } from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
+import { navigateHomeFromPractice } from '../navigation/navigateHomeFromPractice';
 import { colors } from '../theme/tokens';
+import { LegendToolbarButton } from './LegendToolbarButton';
+import { PracticeNavBar } from './navigation/PracticeNavBar';
 import { PlaybackControls } from './PlaybackControls';
 import { StatusBanner } from './StatusBanner';
-import { LegendToolbarButton } from './LegendToolbarButton';
 import { ToolbarControls } from './ToolbarControls';
 
 interface MobileToolbarProps {
@@ -42,6 +44,10 @@ export function MobileToolbar({
   );
   const bannerMessage = bpmMessage ?? playbackStatus.message;
 
+  const handleGoHome = useCallback(() => {
+    navigateHomeFromPractice(playback.stopPlayback);
+  }, [playback.stopPlayback]);
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.toolbarRow}>
@@ -64,6 +70,7 @@ export function MobileToolbar({
         />
 
         <LegendToolbarButton />
+        <PracticeNavBar onPressHome={handleGoHome} />
       </View>
 
       {bannerMessage ? (

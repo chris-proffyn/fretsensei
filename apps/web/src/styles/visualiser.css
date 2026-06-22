@@ -54,7 +54,8 @@
 .direction-button:focus-visible,
 .subdivision-button:focus-visible,
 .small-action-button:focus-visible,
-.fret-window-track-cell:focus-visible {
+.fret-window-track-cell:focus-visible,
+.practice-nav-link:focus-visible {
   outline: 3px solid rgba(255, 176, 32, 0.55);
   outline-offset: 2px;
 }
@@ -1510,6 +1511,44 @@ select:focus {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+}
+
+.practice-nav-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+.practice-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(23, 27, 33, 0.82);
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.practice-nav-link:hover {
+  color: var(--text);
+  border-color: rgba(255, 176, 32, 0.35);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+.practice-nav-link--icon {
+  width: 44px;
+  padding: 0;
 }
 
 .settings-icon-button {

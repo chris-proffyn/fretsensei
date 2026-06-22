@@ -5,6 +5,7 @@ import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController
 import { FretboardSection } from './FretboardSection';
 import { FretFocusPanel } from './FretFocusPanel';
 import { HeroHeader } from './HeroHeader';
+import { PracticeNavLinks } from './navigation/PracticeNavLinks';
 import { ScreenReaderSummary } from './ScreenReaderSummary';
 import { SettingsPanel } from './SettingsPanel';
 
@@ -78,6 +79,7 @@ export function VisualiserScreen({
       <main className="page" id="main-content">
         <div className="page-header-row">
           <HeroHeader />
+          <PracticeNavLinks />
         </div>
         <ScreenReaderSummary viewModel={viewModel} />
 

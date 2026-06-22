@@ -17,14 +17,6 @@ async function lockPortraitForLaunch() {
   }
 }
 
-async function lockLandscapeForApp() {
-  try {
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-  } catch {
-    // Orientation APIs may be unavailable in tests or unsupported environments.
-  }
-}
-
 export function useLaunchSplash() {
   const [phase, setPhase] = useState<LaunchSplashPhase>('dpa');
   const [appReady, setAppReady] = useState(false);
@@ -38,13 +30,8 @@ export function useLaunchSplash() {
   useEffect(() => {
     if (phase === 'dpa' || phase === 'modewise') {
       void lockPortraitForLaunch();
-      return;
     }
-
-    if (appReady) {
-      void lockLandscapeForApp();
-    }
-  }, [phase, appReady]);
+  }, [phase]);
 
   useEffect(() => {
     if (!appReady) {

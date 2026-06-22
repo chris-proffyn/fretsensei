@@ -2,8 +2,8 @@
 
 **Document Type:** Authoritative Project State & Execution Ledger  
 **Product:** FretSensei Guitar Fretboard Visualiser  
-**Last Updated:** 2026-06-21  
-**Status:** Beta ready — Milestone 6 complete; release verification pending
+**Last Updated:** 2026-06-22  
+**Status:** Beta ready — Milestone 8 (homepage/guide) in progress
 
 ---
 
@@ -12,8 +12,8 @@
 | Field | Value |
 |---|---|
 | **Phase** | Beta ready |
-| **Current Focus** | Release readiness complete |
-| **Next Task** | Manual Netlify deploy + device smoke verification |
+| **Current Focus** | Web slice complete; mobile homepage/guide next |
+| **Next Task** | Phase 6 — mobile routing and orientation |
 | **Blockers** | None |
 | **GitHub** | [chris-proffyn/fretsensei](https://github.com/chris-proffyn/fretsensei) — local scaffold ready to push |
 
@@ -27,6 +27,7 @@ Playback                    ████████████  transport + Ka
 Mobile UI                   ████████████  Expo iOS/Android smoke
 Hardening & release         ████████████  a11y, e2e, Netlify config
 Karplus-Strong              ████████████  web + mobile native; sound QA (web)
+Homepage & How-To Guide     ███████░░░░░  Web complete (Phases 1–5); mobile Phases 6–7 next
 Release verification        ░░░░░░░░░░░░  Netlify deploy + device smoke
 ```
 
@@ -186,6 +187,21 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 
 ---
 
+### 8. Homepage & How-To Guide
+
+- [x] 8.1 Shared content constants — `HOME_CONTENT`, `HOME_ACTIONS`, `HOW_TO_GUIDE_SECTIONS` in `packages/utils`
+- [x] 8.2 Web routing shell — `react-router-dom`; `/`, `/practice`, `/how-to`; `PracticeScreen` wraps visualiser
+- [x] 8.3 Web homepage — branded `HomeScreen` (Phase 3)
+- [x] 8.4 Web how-to guide — `GuideArticle` renderer (Phase 4)
+- [x] 8.5 Web practice navigation — Home + Help links on `/practice` (Phase 5)
+- [x] 8.6 Mobile routing & orientation — `/`, `/practice`, `/how-to`; portrait after splash; landscape on practice only (Phase 6)
+- [x] 8.7 Mobile screens & practice nav — full guide renderer, Home/Help on practice (Phase 7)
+- [ ] 8.8 Tests & E2E — route smoke including Home from practice (Phase 9)
+
+**Exit criteria:** Web and mobile open to homepage; Mode Practice at `/practice`; guide at `/how-to`; explicit Home control on practice; shared content; tests green.
+
+---
+
 ## 3. Reference Documents
 
 | Document | Location |
@@ -194,6 +210,8 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 | Technical requirements | `docs/project/product-technical-requirements.md` |
 | Karplus-Strong playback spec | `docs/project/fretsensei-karplus-strong-playback-spec.md` |
 | Karplus-Strong implementation tasks | `docs/project/fretsensei-karplus-strong-playback-implementation-tasks.md` |
+| Homepage & How-To spec | `docs/project/modewise-v1-homepage-how-to-functional-technical-spec.md` |
+| Homepage & How-To implementation tasks | `docs/project/modewise-v1-homepage-how-to-implementation-tasks.md` |
 | RSD process | `docs/PROFFYN_RSD_PROCESS.md` |
 | Bootstrap guide | `docs/RSD_PROJECT_BOOTSTRAP.md` |
 | Session re-orientation | `docs/RSD_NEW_CHAT.md` |
@@ -216,3 +234,7 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 | 2026-06-21 | Milestone 6 complete (web) — Karplus-Strong playback, legacy fallback, 86 automated tests passing |
 | 2026-06-21 | Added “Where we are” progress graphic; status header aligned to beta-ready phase |
 | 2026-06-22 | Specs updated to v1.1 — aligned functional/technical requirements with ModeWise toolbar UI, hidden scale map, pentatonic multi-select, Karplus playback, iOS device testing; Android next |
+| 2026-06-22 | Milestone 8 started — homepage/how-to shared content (Phase 1) and web routing shell (Phase 2): `/`, `/practice`, `/how-to` |
+| 2026-06-22 | Milestone 8 progress — full web how-to guide at `/how-to` (Phase 4) |
+| 2026-06-22 | Milestone 8 progress — web practice Home + Help nav (Phase 5); mobile routing shell + practice-only landscape lock (Phase 6) |
+| 2026-06-22 | Milestone 8 progress — mobile homepage, full how-to guide, and practice Home/Help nav (Phase 7); 26 mobile tests passing |

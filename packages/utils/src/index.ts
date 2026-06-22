@@ -7,6 +7,10 @@ export * from './constants/tuning';
 export * from './constants/pentatonic-positions';
 export * from './constants/layout-config';
 export * from './constants/app-copy';
+export * from './constants/content/types';
+export * from './constants/content/home-content';
+export * from './constants/content/how-to-guide';
+export * from './constants/content/guide-access';
 
 export * from './music-theory/note';
 export * from './music-theory/scale';
