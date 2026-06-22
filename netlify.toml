@@ -4,7 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  VITE_FEATURE_ONE_CHORD_VAMP = "false"
+  VITE_FEATURE_ONE_CHORD_VAMP = "true"
 
 [[headers]]
   for = "/*"
