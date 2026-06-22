@@ -215,4 +215,4 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 | 2026-06-21 | Milestone 5 complete — accessibility, error handling, Playwright e2e, Netlify, beta readiness docs |
 | 2026-06-21 | Milestone 6 complete (web) — Karplus-Strong playback, legacy fallback, 86 automated tests passing |
 | 2026-06-21 | Added “Where we are” progress graphic; status header aligned to beta-ready phase |
-| 2026-06-21 | Milestone 7 (mobile Karplus) — shared utils Karplus, react-native-audio-api engine, sample engine toggle |
+| 2026-06-22 | Specs updated to v1.1 — aligned functional/technical requirements with ModeWise toolbar UI, hidden scale map, pentatonic multi-select, Karplus playback, iOS device testing; Android next |

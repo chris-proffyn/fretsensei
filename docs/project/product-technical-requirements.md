@@ -1,82 +1,84 @@
-# FretSensei Fretboard Visualiser — Technical Requirements Document
+# ModeWise Fretboard Visualiser — Technical Requirements Document
 
-**Version:** 1.0  
-**Date:** 2026-06-21  
-**Source reviewed:** `fretsensei-fretboard-visualiser.html`  
-**Target platforms:** Web, iOS, Android  
-**Companion document:** `fretsensei-functional-requirements.md`
+**Version:** 1.1  
+**Date:** 2026-06-22  
+**Product name:** ModeWise  
+**Source reviewed:** Implemented monorepo (`apps/web`, `apps/mobile`, `packages/utils`)  
+**Target platforms:** Web (Vite + Netlify), iOS, Android (Expo 52)  
+**Companion document:** `product-functional-requirements.md`
 
 ---
 
 ## 1. Purpose
 
-This document defines the technical requirements for rebuilding the FretSensei Guitar Fretboard Visualiser as a maintainable, production-ready application across web and mobile.
+This document defines the technical requirements for the **ModeWise** guitar fretboard visualiser as implemented in the `fretsensei` monorepo.
 
-The reviewed HTML prototype is a single-file implementation containing UI, styling, scale theory, fretboard rendering, pattern classification, and Web Audio playback. The production solution should preserve the demonstrated behaviour while restructuring the code into reusable domain logic, platform-aware UI components, and testable modules.
+The production solution uses a **shared TypeScript domain layer** (`packages/utils`), separate **web** and **mobile** UI apps, **Karplus-Strong** playback, a **compact toolbar + modal** control pattern, and a **brand asset sync** pipeline. Music theory, fretboard calculation, pattern classification, and playback sequencing remain platform-independent.
+
+### 1.1 Revision notes (v1.1)
+
+| Area | v1.0 spec | Implemented |
+|---|---|---|
+| Monorepo layout | Conceptual `packages/core` | `packages/utils`, `packages/ui`; `apps/web`, `apps/mobile` |
+| UI structure | `ControlsPanel` + inline controls | `ToolbarControls` + `PickerModal` pickers |
+| Pentatonic position | `selectedPentatonicPosition: 'all' \| '1'…` | `selectedPentatonicPositions: PentatonicShapePosition[]` |
+| Default fret window | Full neck | `layoutConfig` merged on init (focused default) |
+| Playback audio | Generic Web Audio oscillators | Karplus-Strong (+ legacy/sample fallbacks) |
+| Scale map UI | Rendered in focus panel | Calculated only; `ScaleMap` component unused in screens |
+| Settings | Not specified | `SettingsPanel` on web; entry point hidden |
+| Mobile orientation | Portrait-first scroll | Landscape lock after splash |
+| Brand assets | Manual | `npm run sync:brand` → web/mobile/native icons |
 
 ---
 
 ## 2. Recommended Architecture
 
-### 2.1 Recommended Platform Strategy
+### 2.1 Implemented Platform Strategy
 
-Use a shared TypeScript codebase with platform-specific rendering where needed.
+| Layer | Technology |
+|---|---|
+| **Monorepo** | npm workspaces (`apps/*`, `packages/*`) |
+| **Web** | Vite + React 19 + TypeScript; Vitest; Playwright e2e; Netlify |
+| **Mobile** | Expo 52 + expo-router + React Native 0.76; Jest |
+| **Shared domain** | `@fretsensei/utils` (TypeScript) |
+| **Shared UI** | `@fretsensei/ui` (minimal); most UI is platform-specific |
+| **State** | React `useReducer` + `visualiserReducer` / `normalizeVisualiserState` |
+| **Web styling** | CSS (`visualiser.css`, `tokens.css`) |
+| **Mobile styling** | React Native StyleSheet + `theme/tokens` |
+| **Web audio** | Web Audio API — Karplus-Strong (`playKarplusStrongNote`) |
+| **Mobile audio** | `react-native-audio-api` Karplus (default dev build) or `expo-av` samples |
+| **Testing** | ~155 unit/integration tests across utils, web, mobile |
 
-Recommended stack:
-
-- **Framework:** Expo + React Native.
-- **Web target:** Expo Web or React Native Web.
-- **Mobile targets:** iOS and Android via Expo/EAS.
-- **Language:** TypeScript.
-- **State management:** Zustand or React Context + reducer for v1.
-- **Styling:** React Native StyleSheet or NativeWind if already adopted.
-- **Audio:** Platform abstraction with Web Audio for web and Expo AV / react-native-audio-api / Tone-compatible abstraction for mobile.
-- **Testing:** Vitest/Jest for domain logic, React Native Testing Library for UI, Playwright for web end-to-end tests, Detox or Maestro for mobile smoke tests.
-
-Alternative acceptable stack:
-
-- React + Vite for web.
-- React Native + Expo for mobile.
-- Shared TypeScript package for fretboard/music theory/audio scheduling logic.
-
-The key architectural requirement is that music theory and pattern logic must be shared, not duplicated between web and mobile.
-
-### 2.2 High-Level Modules
+### 2.2 Repository Layout (as built)
 
 ```text
-apps/
-  web/
-  mobile/
-packages/
-  core/
-    music-theory/
-    fretboard-engine/
-    pattern-engine/
-    playback-engine/
-    state/
-  ui/
-    components/
-    theme/
-    accessibility/
-  test-utils/
+fretsensei/
+  apps/
+    web/          # Vite visualiser, Playwright e2e
+    mobile/       # Expo app, ios/ android/ (gitignored native dirs)
+  packages/
+    utils/        # Domain: music theory, fretboard VM, playback, state
+    ui/           # Shared UI primitives (minimal)
+  assets/brand/   # Canonical ModeWise SVG/PNG sources
+  scripts/
+    sync-brand-assets.mjs
+  docs/project/   # Requirements, decisions, status
 ```
 
-For a simpler monorepo, the same structure may live under `src/`:
+Domain logic must not be duplicated between `apps/web` and `apps/mobile`; both import `@fretsensei/utils`.
+
+### 2.3 High-Level Modules (`packages/utils`)
 
 ```text
-src/
-  app/
-  components/
-  constants/
-  domain/
-  hooks/
-  playback/
-  state/
-  styles/
-  tests/
+packages/utils/src/
+  constants/       # modes, keys, tuning, pentatonic-positions, layout-config, app-copy
+  music-theory/    # noteAt, scale, degrees
+  fretboard/       # fret-range, pattern-classification, pentatonic-position, pentatonic-position-toolbar
+  view-model/      # buildFretboardViewModel, scale-map, position-summary
+  playback/        # sequence, session, status, karplus/
+  state/           # defaults, reducer, normalize, layout merge helpers
+  types/
 ```
-
----
 
 ## 3. Technical Principles
 
@@ -178,7 +180,14 @@ const STANDARD_TUNING: StringDefinition[] = [
 ```ts
 type PlaybackDirection = 'up' | 'down' | 'up-down';
 type PlaybackState = 'idle' | 'playing';
-type PentatonicPosition = 'all' | '1' | '2' | '3' | '4' | '5';
+type PentatonicShapePosition = 1 | 2 | 3 | 4 | 5;
+
+interface LayoutConfig {
+  pentatonicPositionWindows: Record<string, Record<PentatonicShapePosition, [number, number]>>;
+  modeKeyDefaultViews: Record<string, Record<NaturalKey, ModeKeyDefaultView>>;
+  pentatonicKeyDefaults: Record<string, Record<NaturalKey, PentatonicKeyDefaults>>;
+  modeDefaultViews?: Record<string, ModeDefaultView>; // deprecated fallback
+}
 
 interface VisualiserState {
   selectedNaturalKey: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
@@ -187,9 +196,11 @@ interface VisualiserState {
   includeBlueNote: boolean;
   selectedFretStart: number;
   selectedFretWidth: number;
-  selectedPentatonicPosition: PentatonicPosition;
+  selectedPentatonicPositions: PentatonicShapePosition[];
   showOutsideNotes: boolean;
   showScaleDegrees: boolean;
+  limitToOneOctave: boolean;
+  includeUpperPosition: boolean;
   threeNotesPerString: boolean;
   extendedPattern: boolean;
   bpm: number;
@@ -197,10 +208,11 @@ interface VisualiserState {
   playbackDirection: PlaybackDirection;
   repeatPlayback: boolean;
   playbackState: PlaybackState;
+  layoutConfig: LayoutConfig;
 }
 ```
 
-Recommended default:
+Recommended raw defaults (`DEFAULT_STATE`):
 
 ```ts
 const DEFAULT_STATE: VisualiserState = {
@@ -210,20 +222,23 @@ const DEFAULT_STATE: VisualiserState = {
   includeBlueNote: false,
   selectedFretStart: 0,
   selectedFretWidth: 25,
-  selectedPentatonicPosition: 'all',
+  selectedPentatonicPositions: [],
   showOutsideNotes: false,
   showScaleDegrees: false,
+  limitToOneOctave: false,
+  includeUpperPosition: false,
   threeNotesPerString: false,
   extendedPattern: false,
   bpm: 90,
   subdivision: 1,
-  playbackDirection: 'up',
+  playbackDirection: 'up-down',
   repeatPlayback: false,
   playbackState: 'idle',
+  layoutConfig: DEFAULT_LAYOUT_CONFIG,
 };
 ```
 
-Note: the prototype currently starts with a focused width of 4 but describes and supports full-neck behaviour. For production, defaulting to full neck better matches the primary onboarding journey. If the product decision is to default to a compact practice window, update tests and onboarding copy accordingly.
+**Runtime initialization:** Apps call `initializeVisualiserState`, which applies `mergeModeKeyDefaultView` for the initial mode/key (e.g. C Ionian → frets 7–10, width 4) then `normalizeVisualiserState`. Raw `DEFAULT_STATE` (0/25) represents full-neck semantics and is used directly in many unit tests.
 
 ---
 
@@ -310,6 +325,8 @@ interface ScaleMapItem {
 }
 ```
 
+**v1:** Built by `buildFretboardViewModel` and consumed by `ScreenReaderSummary`. The `ScaleMap` React components exist on web/mobile but are **not mounted** in visualiser screens.
+
 ### 5.6 Playback Note View Model
 
 ```ts
@@ -376,19 +393,25 @@ Requirements:
 
 ### 6.4 Pentatonic Position Functions
 
+Central source of truth: `packages/utils/src/constants/pentatonic-positions.ts` (`PENTATONIC_POSITION_WINDOWS`).
+
 ```ts
+function getPentatonicPositionsForMode(modeId: string): PentatonicShapePosition[];
+function normalizePentatonicPositionsForMode(modeId: string, positions: PentatonicShapePosition[]): PentatonicShapePosition[];
+function getPentatonicPositionWindow(modeId: string, position: PentatonicShapePosition): [number, number];
 function getRootFret(root: NoteName): number;
-function normalizeFretRange(start: number, end: number): [number, number];
-function getPositionRange(root: NoteName, position: PentatonicPosition, mode: ModeDefinition): [number, number] | null;
-function fretMatchesWrappedRange(fret: number, start: number, end: number): boolean;
+function getPositionRange(root: NoteName, position: PentatonicShapePosition, mode: ModeDefinition, windows?: LayoutConfig['pentatonicPositionWindows']): [number, number] | null;
+function resolvePentatonicFretWindow(layoutConfig, modeId, key, flatEnabled, positions): { start: number; width: number } | null;
 ```
 
 Requirements:
 
 - Root fret is calculated on the low E string.
-- Position windows are offset from that root fret.
-- Negative ranges should normalise up by octave where needed.
-- Ranges above 24 should normalise down by octave where appropriate.
+- Position windows are offset tuples from `PENTATONIC_POSITION_WINDOWS`.
+- **Multi-select:** `resolvePentatonicFretWindow` unions selected positions (min start, max end).
+- `togglePentatonicPosition` adds/removes positions; order normalized to canonical 1…5.
+- Manual `setFretWindow` is a **no-op** in pentatonic mode.
+- Toolbar labels: `getPentatonicPositionToolbarLabel`, `getPentatonicPositionAriaLabel` in `pentatonic-position-toolbar.ts`.
 
 ### 6.5 Extended Pattern Functions
 
@@ -496,35 +519,48 @@ type VisualiserAction =
   | { type: 'toggleBlueNote'; enabled: boolean }
   | { type: 'setFretWindow'; start: number; width: number }
   | { type: 'setFullNeck' }
-  | { type: 'setPentatonicPosition'; position: PentatonicPosition }
+  | { type: 'togglePentatonicPosition'; position: PentatonicShapePosition }
   | { type: 'toggleOutsideNotes'; enabled: boolean }
   | { type: 'toggleScaleDegrees'; enabled: boolean }
+  | { type: 'toggleLimitToOneOctave'; enabled: boolean }
+  | { type: 'toggleIncludeUpperPosition'; enabled: boolean }
   | { type: 'toggleThreeNotesPerString'; enabled: boolean }
   | { type: 'toggleExtendedPattern'; enabled: boolean }
   | { type: 'setBpm'; bpm: number }
   | { type: 'setSubdivision'; subdivision: 1 | 2 | 3 | 4 }
   | { type: 'setPlaybackDirection'; direction: PlaybackDirection }
   | { type: 'toggleRepeatPlayback'; enabled: boolean }
-  | { type: 'setPlaybackState'; playbackState: PlaybackState };
+  | { type: 'setPlaybackState'; playbackState: PlaybackState }
+  // Layout settings (web SettingsPanel — UI entry deferred)
+  | { type: 'updatePentatonicPositionWindow'; modeId: string; position: PentatonicShapePosition; window: [number, number] }
+  | { type: 'updateModeKeyDefaultView'; modeId: string; key: NaturalKey; view: ModeKeyDefaultView }
+  | { type: 'applyModeKeyDefaultView'; modeId: string; key: NaturalKey }
+  | { type: 'updatePentatonicPositionDefaultView'; modeId: string; key: NaturalKey; position: PentatonicShapePosition; view: ModeKeyDefaultView }
+  | { type: 'setPentatonicKeyDefaultPosition'; modeId: string; key: NaturalKey; position: PentatonicShapePosition }
+  | { type: 'applyPentatonicPositionDefaultView'; modeId: string; key: NaturalKey; position: PentatonicShapePosition }
+  | { type: 'resetLayoutConfig' };
 ```
 
 ### 7.2 State Normalisation Rules
 
-The reducer/store must enforce these rules centrally:
+The reducer/store must enforce these rules centrally (`normalizeVisualiserState`):
 
 - If selected mode is non-pentatonic:
   - `includeBlueNote = false`
-  - `selectedPentatonicPosition = 'all'`
+  - `selectedPentatonicPositions = []`
 - If selected mode is pentatonic:
   - `threeNotesPerString = false`
+  - Fret window aligned from selected positions when non-empty
+  - `setFretWindow` ignored
 - If full-neck mode is active:
   - `threeNotesPerString = false`
   - `extendedPattern = false`
-- If `bpm < 40`, set to 40.
-- If `bpm > 220`, set to 220.
-- If `bpm` is invalid, set to 90.
-- Fret window width must be clamped between 3 and 25.
-- Fret window end must not exceed 24.
+  - `limitToOneOctave = false`
+- `includeUpperPosition` only when pentatonic + focused + `selectedPentatonicPositions.length > 0`
+- `toggleRepeatPlayback`: sets `playbackDirection` to `up-down` when enabled, `up` when disabled
+- If `bpm < 40`, set to 40; if `bpm > 220`, set to 220; invalid → 90
+- Fret window width clamped 3–25; end ≤ 24
+- Most actions while `playbackState === 'playing'` reset playback to idle (except `setPlaybackState`, `toggleRepeatPlayback`)
 
 ### 7.3 Playback Side Effects
 
@@ -539,96 +575,86 @@ The store should not directly schedule audio. Instead:
 
 ## 8. UI Component Requirements
 
-### 8.1 Component Tree
+### 8.1 Component Tree (implemented)
 
-Recommended component structure:
+**Web**
 
 ```text
-<VisualiserScreen>
-  <HeroHeader />
-  <ControlsPanel>
-    <KeySelector />
-    <ModeSelector />
-    <OptionsRow />
-    <PentatonicPositionSelector />
-    <Legend />
-  </ControlsPanel>
-  <FretboardCard>
-    <FretFocusPanel>
-      <FretWindowSummary />
-      <TransportControls />
-      <TempoControls />
-      <PlaybackDirectionSelector />
-      <RepeatToggle />
-      <ScaleMap />
-    </FretFocusPanel>
-    <FretWindowTrack />
-    <FretboardGrid />
-  </FretboardCard>
-</VisualiserScreen>
+<App>  // document.title = APP_NAME
+  <VisualiserScreen>
+    <HeroHeader />                    // ModeWise branding + info dialog
+    <ScreenReaderSummary />           // sr-only; includes scale map text
+    <section class="fretboard-card">
+      <FretFocusPanel>                // playback toolbar
+        <StatusBanner />
+        <ToolbarControls />           // key | mode | pos | cog modals
+        <PlaybackControls />
+        <LegendToolbarButton />
+        <playback-panel-toggle />     // maximize
+      </FretFocusPanel>
+      <FretboardSection>
+        <FretWindowTrack />
+        <FretboardGrid />
+      </FretboardSection>
+    </section>
+    <SettingsPanel open={false} />    // layout defaults — entry hidden
+    [maximized overlay duplicate]
+  </VisualiserScreen>
+</App>
 ```
+
+**Mobile**
+
+```text
+<RootLayout>                          // splash phases: dpa → modewise → app
+  <VisualiserScreen>
+    <ScreenReaderSummary />
+    <MobileToolbar>
+      <ToolbarControls />
+      <PlaybackControls compact />
+      <LegendToolbarButton />
+    </MobileToolbar>
+    <ScrollView horizontal>
+      <FretboardGrid />
+      <FretWindowOverlay />
+    </ScrollView>
+  </VisualiserScreen>
+</RootLayout>
+```
+
+**Shared modal/picker components:** `ToolbarControls`, `PickerModal`, `KeySelector`, `ModeSelector`, `PentatonicPositionSelector`, `OptionsRow`, `Legend` / `LegendToolbarButton`.
+
+**Removed / unused in screens:** `ControlsPanel` (deleted). `ScaleMap` (exists, unmounted). `SettingsIcon` (unwired). Mobile `HeroHeader`, `FretFocusPanel` (exist, unmounted).
 
 ### 8.2 Web Layout
 
-Web can use CSS grid/flexbox.
+Implemented:
 
-Requirements:
-
-- Max content width around 1440px.
-- Fretboard minimum visual width around 1220px or equivalent.
-- Horizontal scroll wrapper around fretboard and fret selector.
-- Breakpoint around 900px for single-column layout.
-- Large touch/click targets.
+- Max content width ~1440px; fretboard card full width.
+- **Fill-width fretboard scaling** in normal view (`computeFretboardFillWidthScale`); **fit** scaling in maximized overlay.
+- Playback toolbar: flex row with picker group, expanding transport, right-side legend + maximize.
+- Mode modal: `picker-dialog-mode` (wider 3-column grid).
+- Horizontal scroll on fretboard when needed; scroll hint on narrow screens.
+- Header settings icon **removed** from v1 UI.
 
 ### 8.3 Mobile Layout
 
-Mobile implementation options:
+Implemented:
 
-1. Use React Native horizontal `ScrollView` for fretboard.
-2. Use SVG rendering for fretboard with pan/zoom in a scroll container.
-3. Use Skia/canvas for higher performance in later versions.
+- **Landscape lock** after splash (`expo-screen-orientation`).
+- Two-phase in-app splash: `DontPanicAppsSplashScreen` (1.2s) → `ModeWiseLoadingScreen` (1.2s).
+- Compact single-row toolbar; subdivision via `SubdivisionPickerModal`.
+- `FretWindowOverlay` on fretboard (not separate track component).
+- `useMobileLayoutMetrics` for compact/portrait hints.
+- **iOS device-tested** (June 2026); Android testing pending.
 
-For v1, a scrollable grid or SVG is recommended.
+### 8.4 Fretboard Rendering (implemented)
 
-Mobile requirements:
+**Implemented:** DOM/CSS grid on web (`FretboardSection`, `FretboardGrid`); React Native `View` grid on mobile (`FretboardGrid.tsx`).
 
-- Controls stack vertically.
-- Fretboard scrolls horizontally.
-- Fret window track remains aligned with fretboard columns.
-- Touch dragging works for fret window movement and resizing.
-- Controls must be usable with one hand where reasonable.
-
-### 8.4 Fretboard Rendering Options
-
-#### Option A — DOM/View Grid
-
-Pros:
-
-- Easy to implement.
-- Clear accessibility tree.
-- Simple styling.
-
-Cons:
-
-- Alignment can be fiddly across web/native.
-
-#### Option B — SVG
-
-Pros:
-
-- Precise cross-platform layout.
-- Easier fret/string/inlay drawing.
-- Better scaling.
-
-Cons:
-
-- Requires additional accessibility work.
-
-Recommendation:
-
-- Use SVG for the fretboard visualisation if cross-platform rendering consistency is the top priority.
-- Use regular native/web controls outside the SVG.
-- Keep note data in view models so the renderer can be swapped later.
+- Note cells are regular elements with data attributes / accessibility labels.
+- Fill-width scaling on web (`useFretboardDisplayScale`, `computeFretboardFillWidthScale`).
+- SVG was considered for cross-platform parity; v1 uses grid for faster iteration and accessibility. View models remain renderer-agnostic if SVG is adopted later.
 
 ---
 
@@ -713,38 +739,37 @@ interface PlaybackCallbacks {
 }
 ```
 
-### 10.2 Web Audio Implementation
+### 10.2 Web Audio Implementation (Karplus-Strong)
 
-The web implementation may mirror the prototype:
+**Primary path:** `apps/web/src/playback/play-karplus-strong-note.ts`
 
-- Create/resume `AudioContext` on user gesture.
-- Use oscillator-based synthesis.
-- Use gain envelopes.
-- Use filter and distortion nodes.
-- Schedule visual highlights with timers.
-- Store timeout IDs for cancellation.
+- Reuses `AudioContext` per session (`createWebAudioPlaybackEngine`).
+- Generates buffers via `@fretsensei/utils` `createKarplusStrongSamples`.
+- String-aware tone profiles (`getKarplusToneProfile`).
+- HP → peaking → LP filter chain; gain envelope.
+- **Fallback:** `legacy-synth-note.ts` on Karplus failure.
+- Four-beat count-in (`play-count-in-click.ts`).
+- `usePlaybackController` builds session from `buildPlaybackSessionContext` (utils).
 
 Requirements:
 
 - Do not create a new audio context per note.
-- Reuse a single context per app session.
-- Resume context when browser policy requires.
-- Cancel scheduled timeouts on stop/restart.
+- Resume context on user gesture when required.
+- Cancel scheduled timeouts/sources on stop/restart.
 - Remove visual highlights on stop.
 
 ### 10.3 Mobile Audio Implementation
 
-For mobile, evaluate:
+**Factory:** `apps/mobile/src/playback/create-playback-engine.ts`
 
-- `expo-av` for simple sample playback.
-- `react-native-audio-api` for Web Audio-like synthesis.
-- Pre-rendered note samples for predictable timbre.
+| Engine | When | Implementation |
+|---|---|---|
+| `karplus` | Default native dev build | `react-native-audio-api` + shared Karplus math |
+| `sample` | `EXPO_PUBLIC_PLAYBACK_ENGINE=sample` or Expo Go | `expo-av-engine.ts` + `pluck.wav` |
 
-Recommendation for production:
+Karplus mobile path mirrors web filter chain in `play-karplus-strong-note.ts`. Sample engine pools `Audio.Sound` with pitch via `playbackRate`.
 
-- Start with a sample-based mobile engine if synthesis timing is unreliable.
-- Use a small set of guitar/pluck samples pitch-shifted where acceptable, or a complete chromatic sample map if audio quality matters.
-- Keep the same playback interface regardless of implementation.
+**Native rebuild required** after `react-native-audio-api` install; Expo Go does not support native audio API.
 
 ### 10.4 Playback Sequence Builder
 
@@ -775,11 +800,29 @@ The controller should compare a stable key/hash for the playback sequence and pl
 
 ---
 
+## 10a. Brand Asset Sync
+
+**Script:** `scripts/sync-brand-assets.mjs`  
+**Command:** `npm run sync:brand` (also `predev` / `prebuild` on web)
+
+Pipeline:
+
+1. Mirror newest `ModeWise.svg` / `ModeWise_lite.svg` between `assets/brand/` and `apps/mobile/assets/brand/`.
+2. Rasterize 1024×1024 PNGs from SVG when SVG is newer (sharp).
+3. Distribute to web logos, mobile `icon.png`, `adaptive-icon.png`, `splash-icon.png`.
+4. Generate web favicons (macOS `sips`; skipped on non-darwin with warning).
+5. Sync **native app icons**: iOS `AppIcon.appiconset`, Android `mipmap-*/ic_launcher*.webp` (with MD5 verify on iOS).
+6. Run `apps/mobile/scripts/generate-splash.mjs` for splash PNGs.
+
+**App branding:** `APP_NAME = 'ModeWise'` in `packages/utils/src/constants/app-copy.ts`; Expo `name` / iOS `CFBundleDisplayName` = ModeWise.
+
+---
+
 ## 11. Styling and Design System Requirements
 
 ### 11.1 Theme Tokens
 
-The prototype uses a dark theme with these conceptual tokens:
+Implemented in `apps/web/src/styles/tokens.css` and `apps/mobile/src/theme/tokens.ts`. Dark theme tokens include:
 
 | Token | Purpose |
 |---|---|
@@ -799,7 +842,7 @@ The prototype uses a dark theme with these conceptual tokens:
 | `outside` | Outside notes. |
 | `shadow` | Elevation. |
 
-Theme tokens should be centralised.
+Theme tokens are centralised in the files above; hero uses two-tone **Mode** / **Wise** styling on web.
 
 ### 11.2 Note Visual States
 
@@ -817,9 +860,9 @@ Required distinctions:
 
 Mobile note sizes may be adjusted, but state distinctions must remain clear.
 
-### 11.3 Avoid Inline Styles for Product UI
+### 11.3 Product UI Styling
 
-The prototype contains some inline style use for legend dashed state. Production should move these to reusable components/styles.
+Legend dashed/extended states use shared components (`Legend`, `LegendToolbarButton`) with CSS / StyleSheet — not ad-hoc inline styles in screens.
 
 ---
 
@@ -960,71 +1003,41 @@ Test cases:
 - BPM clamps to 40-220.
 - Step seconds uses `60 / bpm / subdivision`.
 
-### 14.7 Component Tests
+### 14.7 Component Tests (implemented highlights)
 
-Test cases:
+- Web `VisualiserScreen.test.tsx` — toolbar modals, pentatonic multi-select, scale map hidden, full-neck guidance.
+- Web `SettingsPanel.test.tsx` — layout default editing (panel exists).
+- Mobile smoke — domain imports, layout metrics, splash sequence.
 
-- Selecting a key updates active button state.
-- Selecting a mode updates active button state.
-- Non-pentatonic mode hides/disables pentatonic-only controls.
-- Scale map displays degree above note name.
-- Full Neck button sets selected range to 0-24.
-- Play button disabled in full-neck mode.
-- Stop button enabled while playing.
+### 14.8 End-to-End Tests (implemented)
 
-### 14.8 End-to-End Tests
+Web Playwright (`apps/web/e2e/smoke.spec.ts`):
 
-Web E2E tests should cover:
+1. Load visualiser shell and fretboard.
+2. Focus fret window and enable playback.
+3. Change mode via toolbar modal.
 
-1. Load app and verify default full-neck C Ionian display.
-2. Switch to C Minor Pentatonic and enable blue note.
-3. Focus frets 5-8 and play notes.
-4. Change mode during playback and verify playback restarts.
-5. Enable outside notes and verify outside markers appear.
-6. Toggle scale degree and verify note labels change.
-7. Resize fret window and verify summary updates.
-
-Mobile smoke tests should cover:
-
-1. App opens.
-2. Controls can be tapped.
-3. Fretboard scrolls horizontally.
-4. Fret window can be changed.
-5. Playback starts and stops.
+Mobile: Jest smoke tests; **iOS manual device testing complete**; Android device testing next.
 
 ---
 
 ## 15. Build and Delivery Requirements
 
-### 15.1 Repository Structure
-
-Recommended:
+### 15.1 Repository Structure (as built)
 
 ```text
 fretsensei/
   README.md
-  package.json
-  tsconfig.base.json
+  package.json                 # workspaces; sync:brand script
   apps/
-    web/
-    mobile/
+    web/                       # Vite + React
+    mobile/                    # Expo 52
   packages/
-    core/
-    ui/
-```
-
-Or simplified for early build:
-
-```text
-fretsensei/
-  src/
-    app/
-    components/
-    domain/
-    playback/
-    state/
-    theme/
-    tests/
+    utils/                     # @fretsensei/utils — domain
+    ui/                        # @fretsensei/ui
+  assets/brand/
+  scripts/sync-brand-assets.mjs
+  docs/project/
 ```
 
 ### 15.2 CI Requirements
@@ -1111,83 +1124,18 @@ Requirements:
 
 ---
 
-## 19. Implementation Milestones
+## 19. Implementation Milestones (status)
 
-### Milestone 1 — Core Domain Engine
+| Milestone | Status | Notes |
+|---|---|---|
+| 1 — Core domain engine | **Complete** | `packages/utils`, 80+ domain tests |
+| 2 — Web visualiser UI | **Complete** | Compact toolbar; scale map hidden |
+| 3 — Playback | **Complete** | Karplus-Strong web + mobile |
+| 4 — Mobile UI | **Complete** | iOS device-tested; Android pending |
+| 5 — Hardening | **Complete** | a11y, e2e, Netlify, brand sync |
+| 6 — UI consolidation | **Complete** | Toolbar modals, ModeWise branding, pentatonic multi-select |
 
-Deliver:
-
-- Notes, keys, modes, tuning constants.
-- Scale calculation.
-- Fretboard cell generation.
-- Pattern classification.
-- Playback sequence generation.
-- Unit tests.
-
-Exit criteria:
-
-- All domain tests pass.
-- Full-neck logic displays all valid scale notes in generated view model.
-
-### Milestone 2 — Web Visualiser UI
-
-Deliver:
-
-- Responsive web screen.
-- Controls.
-- Fretboard rendering.
-- Fret window selector.
-- Scale map.
-- Visual states.
-
-Exit criteria:
-
-- Web UI matches required functional behaviour.
-- E2E smoke tests pass.
-
-### Milestone 3 — Playback
-
-Deliver:
-
-- Web playback engine.
-- Playback controller.
-- Play/stop/repeat/direction/BPM/subdivision controls.
-- Live restart on relevant state changes.
-
-Exit criteria:
-
-- Playback works reliably in focused mode.
-- Stop cancels playback immediately.
-- Mode changes during playback restart with new notes.
-
-### Milestone 4 — Mobile UI
-
-Deliver:
-
-- Mobile layout.
-- Touch-friendly controls.
-- Horizontal fretboard scroll.
-- Fret window touch interaction.
-- Mobile audio implementation or fallback.
-
-Exit criteria:
-
-- iOS and Android builds pass smoke testing.
-- Key visualiser functions work on device.
-
-### Milestone 5 — Hardening
-
-Deliver:
-
-- Accessibility pass.
-- Performance pass.
-- Error handling.
-- Analytics if included.
-- Documentation.
-
-Exit criteria:
-
-- Ready for beta release.
+**Next:** Android device testing; optional re-enable layout settings UI; scale map / outside-notes UI decisions.
 
 ---
 
@@ -1225,16 +1173,7 @@ Prefer:
 
 ### 20.3 Playback Should Not Depend on Rendered DOM
 
-The prototype queries `.note[data-midi]` from the DOM. Production should derive playback notes from the view model.
-
-Preferred:
-
-```ts
-const sequence = getPlaybackSequence(
-  getVisiblePlayableNotes(fretboardViewModel.cells),
-  state.playbackDirection
-);
-```
+**Implemented:** `buildPlaybackSessionContext` / `getPlaybackSequence` derive notes from the fretboard view model — not DOM queries.
 
 ### 20.4 Use Stable Cell Keys
 
@@ -1253,16 +1192,17 @@ This can be used for:
 
 ---
 
-## 21. Definition of Done
+## 21. Definition of Done (v1 beta)
 
 The production visualiser is done when:
 
-- Functional requirements are implemented.
-- Technical requirements are followed or documented exceptions are approved.
-- Unit tests cover all core domain functions.
+- Functional and technical requirements (v1.1) reflect implemented behaviour.
+- Unit tests cover core domain functions (~155 tests across monorepo).
 - Web UI works on desktop and mobile browser widths.
-- iOS and Android builds run successfully if mobile app delivery is in scope for the release.
+- **iOS native build tested on device** with Karplus playback.
+- Android native build smoke-tested on device (**pending**).
 - Full-neck mode displays all scale notes across all strings and frets.
-- Playback starts, stops, repeats, and responds to mode changes as specified.
-- Code is modular, typed, and maintainable.
-- No download/export functions are present unless separately requested.
+- Focused-mode playback starts, stops, repeats; mode changes restart playback.
+- Compact toolbar + modal pickers functional on web and mobile.
+- ModeWise branding, icons, and `sync:brand` pipeline operational.
+- Code is modular, typed, and maintainable in `packages/utils` + platform apps.

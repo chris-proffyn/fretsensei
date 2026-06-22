@@ -1,20 +1,40 @@
-# FretSensei Fretboard Visualiser — Functional Requirements Document
+# ModeWise Fretboard Visualiser — Functional Requirements Document
 
-**Version:** 1.0  
-**Date:** 2026-06-21  
-**Source reviewed:** `fretsensei-fretboard-visualiser.html`  
-**Target platforms:** Web, iOS, Android  
+**Version:** 1.1  
+**Date:** 2026-06-22  
+**Product name:** ModeWise (`Guitar Mode Mastery`)  
+**Repository:** `fretsensei` (internal package/slug naming)  
+**Source reviewed:** `fretsensei-fretboard-visualiser.html` (prototype) + implemented web/mobile apps  
+**Target platforms:** Web (Netlify), iOS, Android (Expo)  
 **Product area:** Guitar learning, scale visualisation, fretboard navigation, practice playback
 
 ---
 
 ## 1. Purpose
 
-FretSensei is an interactive guitar fretboard visualiser that helps guitarists understand scales, modes, note locations, interval relationships, and playable fretboard patterns across a standard-tuned 24-fret guitar.
+ModeWise is an interactive guitar fretboard visualiser that helps guitarists understand scales, modes, note locations, interval relationships, and playable fretboard patterns across a standard-tuned 24-fret guitar.
 
-The current HTML prototype demonstrates the core learning experience: a user selects a key and mode, sees the relevant notes rendered across the neck, narrows focus to a fret window, optionally uses pattern helpers, and plays the visible notes back using generated audio.
+The original HTML prototype demonstrated the core learning experience. The production solution (web and mobile) preserves that domain behaviour while presenting a **compact playback-toolbar UI**, **ModeWise branding**, and **modal pickers** for key, mode, display options, and legend.
 
-This document defines the expected product behaviour for the production solution across web and mobile. It is intentionally implementation-neutral, but it reflects the behaviour and rules present in the reviewed prototype.
+This document defines the expected product behaviour for the production solution. Domain rules (scales, patterns, playback sequencing) remain aligned with the prototype; **screen layout and several v1 UI decisions differ** and are documented in §8 and the revision notes below.
+
+### 1.1 Revision notes (v1.1 — aligned to codebase)
+
+| Area | Original spec / prototype | Implemented (v1) |
+|---|---|---|
+| Product branding | FretSensei | **ModeWise** — browser tab, app name, hero, splash |
+| Controls layout | Separate controls panel above fretboard | **Compact playback toolbar** with modal pickers |
+| Scale map | Always visible panel | **Hidden from UI**; data exposed via screen-reader summary only |
+| Layout settings | Not specified | Web `SettingsPanel` implemented but **entry point hidden** (deferred) |
+| Pentatonic positions | Single “All Positions” + 1–5 | **Multi-select positions 1–5** via toolbar; empty selection ≈ unconstrained / full-neck semantics |
+| Display options | Inline toggles | **Cog modal** (Blue note, 3NPS, Ext, 1Oct, Degree, Upper) |
+| Outside notes | Toggle in options row | **State supported; no user toggle in v1 UI** |
+| Playback direction | Dedicated selector | **No dedicated control**; Repeat toggles `up-down` vs `up` |
+| Full neck | “Full Neck” button in focus panel | **“Show all frets”** on fret-window track (web); pentatonic full-neck clears position selection |
+| Default fret window | Full neck (0–24) | **Focused window from `layoutConfig`** (e.g. C Ionian frets 7–10 on first load) |
+| Mobile orientation | Portrait-first | **Landscape-locked** after branded splash sequence |
+| Audio | Generic synthesis | **Karplus-Strong** synthesis (web + native mobile); sample fallback on Expo Go |
+| Mobile testing | Both platforms | **iOS device-tested**; Android testing next |
 
 ---
 
@@ -40,19 +60,21 @@ The initial production build must include:
 
 - Responsive fretboard visualisation for standard guitar tuning.
 - 24 frets plus open strings.
-- Key selection using natural key buttons and a flat toggle.
-- Mode/scale selection.
-- Full-neck display.
-- Adjustable fretboard focus window.
-- Scale map showing scale degrees above note names.
-- Optional display of outside notes.
+- Key selection using natural key buttons and a flat toggle (modal picker).
+- Mode/scale selection (modal picker).
+- Full-neck display and adjustable fretboard focus window.
+- Optional display of outside notes (domain support; **no v1 UI toggle**).
 - Optional display of scale degrees instead of note names on the fretboard.
-- Pentatonic position selection.
+- Pentatonic position selection (**multi-select**, toolbar modal).
 - Pentatonic blue note support.
 - Modal three-notes-per-string pattern support.
 - Extended pattern support.
-- Play, stop, repeat, BPM, subdivision, and playback direction controls.
-- Web Audio or native audio playback depending on platform.
+- **One-octave limit** pattern option.
+- **Include upper position** option (pentatonic, focused mode).
+- Play, stop, repeat, BPM, and subdivision controls.
+- **Karplus-Strong** audio synthesis on web and native mobile builds.
+- Compact toolbar with modal pickers (key, mode, position, display options, legend).
+- Web: maximized fretboard overlay; mobile: landscape orientation after splash.
 - Accessible controls with clear active states.
 
 ### 3.2 Out of Scope for Initial Production Build
@@ -219,32 +241,41 @@ The scale map always shows degree above note name.
 
 ## 6. Primary User Journey
 
-### 6.1 Explore a Scale Across the Full Neck
+### 6.1 Explore a Scale (focused default)
 
 1. User opens the app.
-2. Default key is C.
-3. Default mode is Ionian.
-4. Full fretboard is displayed from open strings to fret 24.
-5. All C Ionian scale notes appear across all strings and all frets.
-6. Root notes are highlighted separately from other scale notes.
-7. User changes key or mode.
-8. Fretboard updates immediately.
-9. Scale map updates immediately.
+2. Default key is C; default mode is Ionian.
+3. **Initial fret window** is applied from per-mode/key layout defaults (e.g. frets 7–10 for C Ionian), not full neck.
+4. Scale notes in the active window appear as in-scale or root; notes outside the pattern may appear out-of-position.
+5. User may tap **Show all frets** (web fret track) or clear pentatonic positions to reach full-neck view.
+6. User changes key or mode via toolbar modal pickers.
+7. Fretboard updates immediately.
+
+Acceptance criteria:
+
+- Layout defaults from `layoutConfig` apply on mode/key change.
+- Full-neck mode shows every in-scale note across open–fret 24 with no duplicate suppression.
+
+### 6.2 Explore a Scale Across the Full Neck
+
+1. User selects **Show all frets** (web) or equivalent full-neck action.
+2. Fret range becomes 0–24 (width 25).
+3. All scale notes across all strings and frets are shown.
+4. Playback click shows guidance (full-neck playback is not available in v1).
 
 Acceptance criteria:
 
 - Full neck must never suppress duplicate scale notes.
 - Every fret/string cell containing a note in the active scale must be displayed as in-scale or root.
-- Full-neck mode must show all scale notes across the entire neck.
 
-### 6.2 Focus on a Fretboard Region
+### 6.3 Focus on a Fretboard Region
 
 1. User drags or clicks the fret window selector.
 2. The active fret range changes.
 3. The fretboard visually distinguishes notes inside the focus window from notes outside the focus window.
 4. Playback becomes available when the selected window is not full neck.
 5. User can resize the window by dragging either edge of the selector.
-6. User can return to full neck using the Full Neck button.
+6. User can return to full neck using **Show all frets** on the fret-window track (web).
 
 Acceptance criteria:
 
@@ -252,10 +283,10 @@ Acceptance criteria:
 - The selected fret window must have a maximum width of 25 positions, covering open through fret 24.
 - The window start must never be less than 0.
 - The window end must never be greater than 24.
-- Playback must be disabled in full-neck mode.
-- Playback must be enabled in focused mode when there are playable notes.
+- **Pentatonic modes:** manual fret-window editing is disabled; window is driven by selected position(s).
+- Playback requires a focused window with playable notes (full-neck play shows guidance only).
 
-### 6.3 Practise Visible Notes
+### 6.4 Practise Visible Notes
 
 1. User selects a focused fret range.
 2. User presses Play.
@@ -283,36 +314,51 @@ Acceptance criteria:
 
 The app shall present a single focused learning workspace comprising:
 
-- Header/hero section.
-- Key controls.
-- Mode controls.
-- Display and pattern options.
-- Legend.
-- Fretboard focus controls.
-- Playback controls.
-- Scale map.
-- Fretboard visualisation.
+**Web**
 
-The page should avoid unnecessary promotional or decorative sections that interrupt the learning workflow.
+- Header/hero section (ModeWise branding, info dialog).
+- Playback toolbar row: key, mode, position (pentatonic), display-options cog, playback transport, legend, maximize toggle.
+- Fretboard focus summary and status banner (when applicable).
+- Fret-window track and fretboard visualisation.
+- Optional maximized fretboard overlay (playback toolbar repeated in overlay).
+
+**Mobile**
+
+- Branded launch sequence (DontPanicApps → ModeWise loading), then landscape visualiser.
+- Compact toolbar: key, mode, position, cog, playback, legend.
+- Fretboard with horizontal scroll and overlay fret-window track.
+
+**Not shown in v1 UI**
+
+- Inline controls panel (replaced by toolbar modals).
+- Visible scale map panel.
+- Layout settings entry point on web (panel code present but hidden).
+
+The page should avoid unnecessary promotional sections that interrupt the learning workflow.
 
 ### FR-002 — Responsive Layout
 
 The app shall adapt to desktop, tablet, and mobile.
 
-Desktop behaviour:
+**Web**
 
-- Controls can use multi-column grid layout.
-- Key and mode buttons should span the available width.
-- Fretboard may horizontally scroll if necessary.
-- Scale map appears beside the fretboard focus controls where space permits.
+- Hero + single fretboard card layout.
+- Playback toolbar: picker buttons left, transport centre, legend + maximize right.
+- Fretboard fills available horizontal width (fill-width scaling); maximized view uses fit scaling.
+- Mode picker modal uses a 3-column grid (2 columns on narrow screens).
+- Fretboard may scroll horizontally on very narrow viewports.
 
-Mobile behaviour:
+**Mobile**
 
-- Controls stack vertically.
-- Mode buttons wrap into fewer columns.
-- Fretboard remains horizontally scrollable.
-- User is shown a sideways-scroll hint when the fretboard exceeds screen width.
-- Touch targets must remain usable.
+- **Landscape-locked** during visualiser use (after portrait splash sequence).
+- Compact toolbar row; subdivision via icon modal.
+- Fretboard scrolls horizontally; scroll hint in portrait-oriented layouts where applicable.
+- Touch targets sized for compact toolbar (≥44pt where feasible).
+
+**Shared**
+
+- Modal pickers for key, mode, pentatonic position, display options, and legend.
+- Touch and pointer interaction on fret-window track (drag move/resize on web; overlay on mobile).
 
 ### FR-003 — Key Selection
 
@@ -408,17 +454,21 @@ Root notes shall appear:
 
 ### FR-009 — Outside Notes
 
-The app shall provide an Outside Notes toggle.
+The domain layer shall support an `showOutsideNotes` flag.
 
-When off:
+**v1 UI:** there is **no user-facing toggle**; outside notes remain hidden (`showOutsideNotes = false`).
+
+When off (default):
 
 - Notes not in the active scale are hidden.
 
-When on:
+When on (future or settings):
 
 - Notes not in the active scale are shown in a muted outside-note state.
 - Outside notes must not be treated as playable scale notes.
 - Outside notes must not participate in playback.
+
+The legend still documents the outside-note colour for consistency with the visual system.
 
 ### FR-010 — Scale Degree Display
 
@@ -434,23 +484,16 @@ When on:
 - Outside notes display `—`.
 - Scale map continues to show both degrees and note names.
 
-### FR-011 — Scale Map
+### FR-011 — Scale Map (v1 UI hidden)
 
-The app shall display a scale map panel that combines interval numbers and note names.
+The app shall continue to **calculate** scale map data (degree + note name per active scale tone, including blue note when enabled) for:
 
-For each active scale note:
+- Screen-reader summary (`ScreenReaderSummary`).
+- Domain/view-model tests.
 
-- The degree is displayed above.
-- The note name is displayed below.
+**v1 UI decision:** the scale map panel is **not rendered** in the mode modal or elsewhere on web or mobile. Users see interval/degree information on the fretboard when **Scale degree** display is enabled.
 
-The scale map must update when any of the following change:
-
-- Key.
-- Flat toggle.
-- Mode.
-- Blue note toggle.
-
-The scale map is always shown and is not dependent on fretboard focus mode.
+If the scale map panel is reintroduced, it should show degree above note name and update on key, flat toggle, mode, and blue-note changes.
 
 ### FR-012 — Fretboard Focus Window
 
@@ -491,13 +534,17 @@ In full-neck mode:
 
 When Major Pentatonic or Minor Pentatonic is selected:
 
-- The Pentatonic Position control is shown.
-- Available values are All Positions, Position 1, Position 2, Position 3, Position 4, and Position 5.
+- A **Pos** toolbar button is shown (e.g. `Pos1`, `Pos1+3`).
+- Tapping opens a modal to **toggle one or more** of positions 1–5 (multi-select).
+- Tapping a selected position again deselects it.
+- An empty selection combined with full-neck semantics shows unconstrained pentatonic notes.
 
 When a non-pentatonic mode is selected:
 
-- The Pentatonic Position control is hidden.
-- Position selection is reset to All Positions.
+- The position control is hidden.
+- Position selection is cleared.
+
+**Note:** The prototype’s explicit “All Positions” button is not used; full-neck / empty selection provides equivalent behaviour.
 
 ### FR-015 — Pentatonic Position Windows
 
@@ -525,11 +572,12 @@ Minor pentatonic offsets:
 
 The app shall normalise ranges so they remain within fret 0 to fret 24.
 
-When a pentatonic position is selected:
+When one or more pentatonic positions are selected:
 
-- The fret window aligns to that position.
+- The fret window aligns to the **union** of those position ranges (min start – max end).
 - The fretboard re-renders.
-- The position summary updates.
+- The position summary updates (e.g. “Positions 1, 3: frets 5–10”).
+- Manual fret-window drag/resize is disabled in pentatonic mode.
 
 ### FR-016 — Pentatonic “All Positions” in Focused Window
 
@@ -613,10 +661,12 @@ This behaviour should not be applied in full-neck mode.
 
 ### FR-022 — Playback Availability
 
-Playback shall be available only when:
+Playback shall run only when:
 
-- The selected fret range is not full neck.
+- The selected fret range is **not** full neck.
 - At least one visible playable note exists.
+
+**v1 UI:** In full-neck mode the Play control remains visible but **shows guidance** instead of starting playback (`FULL_NECK_PLAYBACK_GUIDANCE`).
 
 Playable notes are:
 
@@ -631,13 +681,15 @@ Outside notes are not playable.
 
 The playback sequence shall be generated from visible playable notes sorted by MIDI pitch ascending.
 
-Direction options:
+Direction options (domain):
 
 | Direction | Behaviour |
 |---|---|
 | Up | Play ascending by MIDI pitch. |
 | Down | Play descending by MIDI pitch. |
 | Up & Down | Play ascending, then descending, excluding duplicate endpoints in the return path. |
+
+**v1 UI:** There is **no dedicated direction selector**. Enabling **Repeat** sets direction to `up-down`; disabling Repeat sets direction to `up`. Default state uses `up-down` with Repeat off until the user toggles Repeat.
 
 ### FR-024 — Playback Tempo
 
@@ -668,20 +720,19 @@ The playback step duration shall be calculated as:
 
 Each played note should sound like a short plucked guitar-like tone.
 
-The current prototype uses generated synthesis with:
+**v1 implementation:** Karplus-Strong physical-modelling synthesis:
 
-- Main oscillator.
-- Body oscillator.
-- Gain envelope.
-- Low-pass filtering.
-- Light distortion.
+- Shared algorithm in `@fretsensei/utils` (`createKarplusStrongSamples`, tone profiles per string).
+- **Web:** Web Audio API with buffer playback, EQ chain, legacy oscillator fallback on error.
+- **Mobile (dev build):** `react-native-audio-api` Karplus engine.
+- **Mobile (Expo Go / sample mode):** `expo-av` sample playback via `EXPO_PUBLIC_PLAYBACK_ENGINE=sample`.
 
-The production app may use generated synthesis or high-quality samples, provided:
+Requirements:
 
 - Notes trigger with low latency.
-- Playback timing is stable.
-- Notes stop cleanly.
-- The app works across web and mobile.
+- Playback timing is stable (40–220 BPM, subdivisions 1–4).
+- Notes stop cleanly; Stop cancels scheduled notes immediately.
+- Four-beat count-in before sequence start.
 
 ### FR-027 — Playback State Management
 
@@ -788,17 +839,61 @@ Expected rendering workload:
 
 ### FR-034 — Persistence
 
-Initial production build may use in-memory state only.
+Initial production build uses **in-memory state only** (no local persistence of user preferences).
 
-Optional local persistence may be added for:
+**Layout defaults** (`layoutConfig`) are bundled defaults and may be edited via the web Settings panel when that entry point is enabled; changes are session-only unless persistence is added later.
 
-- Last selected key.
-- Last selected mode.
-- Last BPM.
-- Last subdivision.
+Optional local persistence may be added post-v1 for:
+
+- Last selected key/mode.
+- Last BPM and subdivision.
 - Display preferences.
 
-Persistence must not block initial release.
+### FR-035 — One Octave Limit
+
+The app shall provide a **One octave** display option (cog modal: “1Oct”).
+
+When enabled in focused (non-full-neck) mode:
+
+- Pattern classification limits visible in-position notes to approximately one octave span according to domain rules in `pattern-classification.ts`.
+
+When full-neck mode is active:
+
+- One octave is disabled and cleared.
+
+### FR-036 — Include Upper Position
+
+The app shall provide an **Include Upper** display option for pentatonic modes (cog modal: “Upper”).
+
+When enabled:
+
+- Available only when pentatonic mode is active, not full neck, and at least one position is selected.
+- Extends pattern classification to include upper-position notes per domain rules.
+
+When conditions are not met:
+
+- Include upper is disabled and cleared.
+
+### FR-037 — Branding and Launch (Mobile)
+
+The mobile app shall:
+
+- Display **DontPanicApps** splash, then **ModeWise** loading screen, before the visualiser.
+- Use native splash (`splash.png`, black background) at app launch.
+- Show home-screen name **ModeWise** (`CFBundleDisplayName` / `app_name`).
+- Lock to **landscape** during visualiser use.
+
+Brand icons and raster assets are propagated via `npm run sync:brand` from `assets/brand/` and `apps/mobile/assets/brand/`.
+
+### FR-038 — Layout Settings (Web, deferred UI)
+
+A **Layout defaults** settings panel exists on web for editing:
+
+- Per-mode/key default fret windows (diatonic).
+- Per-mode/key/position default windows and default position (pentatonic).
+- Pentatonic position offset windows.
+
+**v1:** The settings entry point (header icon) is **hidden**; panel is not user-accessible. Domain `layoutConfig` defaults still drive initial fret windows.
 
 ---
 
@@ -806,65 +901,88 @@ Persistence must not block initial release.
 
 ### 8.1 Main Visualiser Screen
 
-The initial product can operate as a single-screen app.
+The initial product operates as a **single-screen app** on web and mobile.
 
-Required sections:
+**Web — required sections**
 
-1. Header
-2. Key controls
-3. Mode controls
-4. Options row
-5. Legend
-6. Fretboard focus and playback panel
-7. Scale map
-8. Fretboard
+1. Hero header (ModeWise branding + info dialog)
+2. Screen-reader summary (hidden)
+3. Fretboard card:
+   - Playback toolbar (`FretFocusPanel`)
+   - Fret-window track
+   - Fretboard grid
+4. Optional maximized fretboard overlay
 
-### 8.2 Header
+**Mobile — required sections**
 
-Must include:
+1. Branded splash sequence (app root layout)
+2. Screen-reader summary (hidden)
+3. Compact toolbar (`MobileToolbar`)
+4. Horizontally scrollable fretboard with overlay fret-window track
 
-- Product name: FretSensei.
-- Screen title: Guitar fretboard visualiser.
-- Short explanatory subtitle.
-
-### 8.3 Controls Panel
+### 8.2 Header (Web)
 
 Must include:
 
-- Key button group.
-- Flat toggle.
-- Mode button group.
-- Blue note toggle.
-- Three notes per string toggle.
-- Extended pattern toggle.
-- Scale degree toggle.
-- Outside notes toggle.
-- Pentatonic position control when applicable.
-- Legend.
+- Product name: **ModeWise** (styled wordmark: “Mode” + “Wise” colours).
+- Screen title: **Guitar Mode Mastery** (prefix in H1).
+- Logo image with alt text “ModeWise”.
+- Info (i) button opening “About ModeWise” dialog with `APP_DESCRIPTION`.
 
-### 8.4 Fretboard Focus Panel
+Browser document title: **ModeWise**.
+
+**Mobile:** Hero header component exists but is **not mounted** on the main visualiser screen; branding appears on launch splash and app icon.
+
+### 8.3 Controls (Toolbar Modals)
+
+Replaces the former inline controls panel. Accessed from the playback toolbar:
+
+| Control | Entry |
+|---|---|
+| Key | Toolbar key button → modal (7 natural keys + flat toggle) |
+| Mode | Toolbar mode button → modal (9 modes; scale map not shown) |
+| Position | Toolbar Pos button → modal (pentatonic only; multi-select 1–5) |
+| Display options | Cog icon → modal (`OptionsRow`) |
+| Legend | Toolbar legend icon → modal |
+
+**Display options modal** includes:
+
+- Blue note (pentatonic only)
+- 3 notes per string (modal, not full neck)
+- Extended pattern
+- One octave
+- Scale degree
+- Include Upper (pentatonic, focused, positions selected)
+
+**Not in v1 toolbar/modals:** Outside notes toggle, playback direction selector, layout settings.
+
+### 8.4 Fretboard Focus Panel / Playback Toolbar
 
 Must include:
 
-- Current range summary.
-- Full Neck button.
-- Play button.
-- Stop button.
-- BPM input.
-- Subdivision select/control.
-- Direction selector.
-- Repeat toggle.
-- Fret window usage hint.
-- Scale map as adjacent/secondary column where space permits.
+- Status banner when playback unavailable or BPM invalid.
+- Toolbar picker buttons (key, mode, position, cog).
+- Play and Stop controls.
+- BPM input (40–220, validation message).
+- Subdivision control (web: inline; mobile: icon modal).
+- Repeat toggle (also affects playback direction: `up-down` vs `up`).
+- **Web only:** Legend button, maximize/minimize fretboard toggle.
+
+Fret-window track (below toolbar on web, overlay on mobile):
+
+- Current range summary / accessibility labels.
+- **Show all frets** control (web).
+- Click/drag to move and resize focused window (disabled in pentatonic mode).
 
 ### 8.5 Fretboard Area
 
 Must include:
 
-- Fret selector track.
-- Fretboard visualisation.
+- Fret selector track (web) or overlay track (mobile).
+- Fretboard visualisation (6 × 25 cells).
 - Horizontal scrolling support.
-- Scroll hint on narrow screens.
+- Scroll hint on narrow viewports where applicable.
+- **Web:** fill-width scaling in normal view; fit scaling in maximized overlay.
 
 ---
 
@@ -874,44 +992,55 @@ The app must maintain at least the following state:
 
 | State Field | Type | Default | Notes |
 |---|---|---|---|
-| selectedNaturalKey | string | C | One of A-G. |
-| selectedRoot | string | C | Internal chromatic root. |
+| selectedNaturalKey | string | C | One of A–G. |
 | flatKeyEnabled | boolean | false | Controls displayed key root. |
 | selectedModeId | string | ionian | Active mode/scale. |
 | includeBlueNote | boolean | false | Only valid for pentatonic. |
-| selectedFretStart | number | 0 | 0 to 24. |
-| selectedFretWidth | number | 25 or product default | Width from 3 to 25. |
-| selectedPentatonicPosition | string | all | all, 1, 2, 3, 4, 5. |
-| showOutsideNotes | boolean | false | Display outside notes. |
-| showScaleDegrees | boolean | false | Note name vs degree display. |
+| selectedFretStart | number | 0 | Overridden at init by layout defaults. |
+| selectedFretWidth | number | 25 | Overridden at init (e.g. 4 → frets 7–10 for C Ionian). |
+| selectedPentatonicPositions | number[] | [] | Multi-select 1–5; empty ≈ unconstrained. |
+| showOutsideNotes | boolean | false | No v1 UI toggle. |
+| showScaleDegrees | boolean | false | Note name vs degree on fretboard. |
+| limitToOneOctave | boolean | false | Focused mode only. |
+| includeUpperPosition | boolean | false | Pentatonic + positions + focused. |
 | threeNotesPerString | boolean | false | Modal focused mode only. |
 | extendedPattern | boolean | false | Focused mode only. |
 | bpm | number | 90 | 40 to 220. |
-| subdivision | number | 1 | 1,2,3,4. |
-| playbackDirection | string | up | up, down, up-down. |
+| subdivision | number | 1 | 1, 2, 3, 4. |
+| playbackDirection | string | up-down | UI: Repeat on → up-down; off → up. |
 | repeatPlayback | boolean | false | Repeat sequence. |
 | playbackState | string | idle | idle or playing. |
+| layoutConfig | object | bundled defaults | Per-mode/key/position fret defaults. |
+
+**Initialization:** `initializeVisualiserState` merges mode/key default view from `layoutConfig` then normalizes.
 
 ---
 
 ## 10. Acceptance Test Scenarios
 
-### ATS-001 — Full Neck C Ionian
+### ATS-001 — Focused Default C Ionian
 
 Given the app is loaded  
 When the default state is shown  
 Then C Ionian is selected  
+And the fret window reflects layout defaults (e.g. frets 7–10)  
+And C notes in the active pattern are highlighted as roots  
+And full-neck play shows guidance, not playback
+
+### ATS-001b — Full Neck C Ionian
+
+Given the user selects Show all frets  
+Then frets 0–24 are active  
 And all C major notes across open to fret 24 are shown  
-And C notes are highlighted as roots  
-And playback is disabled in full-neck mode
+And C notes are highlighted as roots
 
 ### ATS-002 — Mode Change Updates Fretboard
 
 Given C Ionian is selected  
-When the user selects Dorian  
+When the user selects Dorian via the toolbar mode modal  
 Then the Dorian button becomes active  
 And the scale notes update to C, D, D#, F, G, A, A#  
-And the scale map shows 1, 2, b3, 4, 5, 6, b7
+And the scale map is **not** shown in the mode modal
 
 ### ATS-003 — Flat Toggle
 
@@ -957,14 +1086,14 @@ And playback restarts using the visible C Dorian notes
 Given C Minor Pentatonic is selected  
 When Blue Note is enabled  
 Then F# is added as b5  
-And F# appears in the scale map  
+And F# is included in the screen-reader scale summary  
 And F# is visually shown as a blue note on the fretboard
 
 ### ATS-009 — Non-Pentatonic Disables Blue Note
 
 Given Minor Pentatonic has Blue Note enabled  
 When the user selects Ionian  
-Then the Blue Note toggle is disabled and unchecked  
+Then the Blue Note option is disabled and unchecked in the display-options modal  
 And no blue note is shown
 
 ### ATS-010 — Three Notes Per String Availability
@@ -983,28 +1112,28 @@ Then low E and A may show scale notes at frets 3-4
 And G, B, and high E may show scale notes at frets 9-10  
 And those notes use extended visual styling
 
-### ATS-012 — Outside Notes
+### ATS-012 — Outside Notes (domain; no v1 UI)
 
-Given Outside Notes is off  
+Given the default v1 UI (outside notes off, no toggle)  
 Then non-scale notes are hidden  
-When Outside Notes is on  
-Then non-scale notes appear in muted style  
-And they do not participate in playback
+**Future:** if an outside-notes toggle is added, non-scale notes should appear in muted style and not participate in playback
 
 ---
 
 ## 11. Open Product Questions
 
-These should be resolved before expanding beyond the initial visualiser:
+Resolved for v1 — see `docs/project/v1-product-decisions.md`.
 
-1. Should the initial mobile app be a standalone app or a responsive web app wrapped for mobile?
-2. Should user preferences persist locally in v1?
-3. Should alternative tunings be prioritised immediately after v1?
-4. Should note display support flat enharmonic spelling throughout the fretboard, not only key labels?
-5. Should playback use synthesised audio or sampled guitar notes?
-6. Should full-neck playback eventually be supported with a safety limit or selected string ordering?
-7. Should scale/map content include educational descriptions, example chords, or use cases?
-8. Should the app support left-handed fretboard orientation?
+Remaining open items:
+
+1. Re-enable **layout settings** UI on web (panel exists; entry hidden).
+2. Reintroduce **scale map** panel or keep degree-on-fretboard only?
+3. Add **outside notes** toggle to display-options modal?
+4. Add dedicated **playback direction** control (separate from Repeat)?
+5. **Android** device testing and release path.
+6. Local preference persistence post-beta?
+7. Left-handed fretboard orientation?
+8. Full-neck playback with safety limits or string ordering?
 
 ---
 

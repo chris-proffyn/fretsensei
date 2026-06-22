@@ -17,14 +17,28 @@ import { MODES, getModeById, isPentatonicMode } from './modes';
 import { PENTATONIC_POSITION_WINDOWS, getPentatonicPositionsForMode } from './pentatonic-positions';
 
 const DIATONIC_DEFAULT_WINDOW_WIDTH = 4;
-const DORIAN_DEFAULT_WINDOW_WIDTH = 5;
+const WIDE_DIATONIC_DEFAULT_WINDOW_WIDTH = 5;
+
+const WIDE_DIATONIC_MODE_IDS = new Set(['dorian', 'aeolian', 'locrian']);
+const ROOT_ANCHORED_DIATONIC_MODE_IDS = new Set(['phrygian']);
 
 const NATURAL_KEY_ORDER = NATURAL_KEYS.map((key) => key.natural);
 
 export function getDiatonicDefaultWindowWidth(modeId: string): number {
-  return modeId === 'dorian'
-    ? DORIAN_DEFAULT_WINDOW_WIDTH
+  return WIDE_DIATONIC_MODE_IDS.has(modeId)
+    ? WIDE_DIATONIC_DEFAULT_WINDOW_WIDTH
     : DIATONIC_DEFAULT_WINDOW_WIDTH;
+}
+
+export function getDiatonicDefaultWindowStart(
+  modeId: string | undefined,
+  rootFret: number,
+): number {
+  if (modeId && ROOT_ANCHORED_DIATONIC_MODE_IDS.has(modeId)) {
+    return rootFret;
+  }
+
+  return rootFret - 1;
 }
 
 export function buildDiatonicDefaultView(
@@ -37,7 +51,7 @@ export function buildDiatonicDefaultView(
     ? getDiatonicDefaultWindowWidth(modeId)
     : DIATONIC_DEFAULT_WINDOW_WIDTH;
   const { start, width: clampedWidth } = clampFretWindow(
-    rootFret - 1,
+    getDiatonicDefaultWindowStart(modeId, rootFret),
     width,
   );
 

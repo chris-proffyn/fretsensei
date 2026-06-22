@@ -57,6 +57,56 @@ describe('diatonic default fret windows', () => {
       selectedFretWidth: 5,
     });
   });
+
+  it('anchors Phrygian at the root fret instead of one fret below', () => {
+    expect(buildDiatonicDefaultView('A', 'phrygian')).toEqual({
+      selectedFretStart: 5,
+      selectedFretWidth: 4,
+    });
+    expect(buildDiatonicDefaultView('C', 'phrygian')).toEqual({
+      selectedFretStart: 8,
+      selectedFretWidth: 4,
+    });
+    expect(buildDiatonicDefaultView('E', 'phrygian')).toEqual({
+      selectedFretStart: 0,
+      selectedFretWidth: 4,
+    });
+  });
+
+  it('uses a five-fret default window for Aeolian and Locrian modes', () => {
+    expect(buildDiatonicDefaultView('A', 'aeolian')).toEqual({
+      selectedFretStart: 4,
+      selectedFretWidth: 5,
+    });
+    expect(buildDiatonicDefaultView('D', 'locrian')).toEqual({
+      selectedFretStart: 9,
+      selectedFretWidth: 5,
+    });
+  });
+
+  it('applies Aeolian and Locrian defaults when selecting mode and key', () => {
+    const aeolian = visualiserReducer(
+      visualiserReducer(DEFAULT_STATE, {
+        type: 'selectNaturalKey',
+        key: 'A',
+      }),
+      { type: 'selectMode', modeId: 'aeolian' },
+    );
+
+    expect(aeolian.selectedFretStart).toBe(4);
+    expect(aeolian.selectedFretWidth).toBe(5);
+
+    const phrygian = visualiserReducer(
+      visualiserReducer(DEFAULT_STATE, {
+        type: 'selectNaturalKey',
+        key: 'A',
+      }),
+      { type: 'selectMode', modeId: 'phrygian' },
+    );
+
+    expect(phrygian.selectedFretStart).toBe(5);
+    expect(phrygian.selectedFretWidth).toBe(4);
+  });
 });
 
 describe('pentatonic position ranges', () => {
