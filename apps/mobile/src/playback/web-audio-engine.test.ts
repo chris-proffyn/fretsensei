@@ -1,5 +1,6 @@
 import type { PlaybackNote } from '@fretsensei/utils';
 import { createWebAudioPlaybackEngine } from './web-audio-engine';
+import { resetSharedMobileAudioContextForTests } from './shared-mobile-audio-context';
 
 const sampleSequence: PlaybackNote[] = [
   { midi: 60, noteName: 'C', stringIndex: 0, fret: 8, cellKey: '0-8' },
@@ -16,6 +17,7 @@ const sampleOptions = {
 describe('createWebAudioPlaybackEngine (mobile)', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    resetSharedMobileAudioContextForTests();
   });
 
   afterEach(() => {

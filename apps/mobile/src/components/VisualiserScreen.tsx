@@ -3,6 +3,7 @@ import type { Dispatch } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
+import type { UseVampControllerReturn } from '../hooks/useVampController';
 import { useMobileLayout } from '../hooks/useMobileLayout';
 import { colors } from '../theme/tokens';
 import { FretboardGrid } from './FretboardGrid';
@@ -14,6 +15,7 @@ interface VisualiserScreenProps {
   viewModel: FretboardViewModel;
   dispatch: Dispatch<VisualiserAction>;
   playback: UsePlaybackControllerReturn;
+  vamp?: UseVampControllerReturn;
 }
 
 export function VisualiserScreen({
@@ -21,6 +23,7 @@ export function VisualiserScreen({
   viewModel,
   dispatch,
   playback,
+  vamp,
 }: VisualiserScreenProps) {
   const { fretLayout, fretboardWidth, fretboardHeight } = useMobileLayout();
   const { width, height } = useWindowDimensions();
@@ -68,6 +71,7 @@ export function VisualiserScreen({
         viewModel={viewModel}
         dispatch={dispatch}
         playback={playback}
+        vamp={vamp}
       />
 
       <View style={styles.fretboardSection}>

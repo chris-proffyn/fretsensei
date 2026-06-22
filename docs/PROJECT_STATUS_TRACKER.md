@@ -3,7 +3,7 @@
 **Document Type:** Authoritative Project State & Execution Ledger  
 **Product:** FretSensei Guitar Fretboard Visualiser  
 **Last Updated:** 2026-06-22  
-**Status:** Beta ready — Milestone 8 (homepage/guide) in progress
+**Status:** v1.0.1 store release candidate — App Store / Play internal testing
 
 ---
 
@@ -11,10 +11,11 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Beta ready |
-| **Current Focus** | Web slice complete; mobile homepage/guide next |
-| **Next Task** | Phase 6 — mobile routing and orientation |
+| **Phase** | v1.0.1 store release candidate |
+| **Current Focus** | App Store Connect + Google Play internal testing builds |
+| **Next Task** | Archive iOS in Xcode; upload AAB to Play Console |
 | **Blockers** | None |
+| **Version** | **1.0.1** (build **1**) — `com.proffyn.fretsensei` |
 | **GitHub** | [chris-proffyn/fretsensei](https://github.com/chris-proffyn/fretsensei) — local scaffold ready to push |
 
 ### Where we are (June 2026)
@@ -202,6 +203,19 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 
 ---
 
+### 9. One-Chord Vamp (build-flagged)
+
+- [x] 9.1 Build-time feature flags — `oneChordVamp`; default off; Netlify explicit `false`
+- [x] 9.2 Shared vamp domain — `buildVampDyad`, perfect fifth, MIDI register selection
+- [x] 9.3 State model — `vampPlaybackState`; mutual exclusion with sequence playback
+- [x] 9.4 Web vamp engine + practice UI — oscillators, `VampControlButton`, `useVampController`
+- [x] 9.5 Mobile vamp engine + practice UI — looped buffer sources; shared AudioContext; hidden in sample/Expo Go mode
+- [ ] 9.6 Production enablement — flip flag when ready; manual sound QA on device
+
+**Exit criteria:** Vamp code complete and tested; production builds keep flag off; enabling flag swaps practice playback for root+fifth drone.
+
+---
+
 ## 3. Reference Documents
 
 | Document | Location |
@@ -212,6 +226,8 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 | Karplus-Strong implementation tasks | `docs/project/fretsensei-karplus-strong-playback-implementation-tasks.md` |
 | Homepage & How-To spec | `docs/project/modewise-v1-homepage-how-to-functional-technical-spec.md` |
 | Homepage & How-To implementation tasks | `docs/project/modewise-v1-homepage-how-to-implementation-tasks.md` |
+| One-Chord Vamp spec | `docs/project/modewise_one_chord_vamp_functional_technical_spec.md` |
+| One-Chord Vamp implementation tasks | `docs/project/modewise-one-chord-vamp-implementation-tasks.md` |
 | RSD process | `docs/PROFFYN_RSD_PROCESS.md` |
 | Bootstrap guide | `docs/RSD_PROJECT_BOOTSTRAP.md` |
 | Session re-orientation | `docs/RSD_NEW_CHAT.md` |
@@ -238,3 +254,5 @@ User accounts, saved presets, alternative tunings, other instruments, left-hande
 | 2026-06-22 | Milestone 8 progress — full web how-to guide at `/how-to` (Phase 4) |
 | 2026-06-22 | Milestone 8 progress — web practice Home + Help nav (Phase 5); mobile routing shell + practice-only landscape lock (Phase 6) |
 | 2026-06-22 | Milestone 8 progress — mobile homepage, full how-to guide, and practice Home/Help nav (Phase 7); 26 mobile tests passing |
+| 2026-06-22 | Milestone 9 — one-chord vamp implemented behind build flag `oneChordVamp` (default off); 126 utils + 59 web + 29 mobile tests passing |
+| 2026-06-22 | **v1.0.1 (build 1)** — store release candidate; mobile vamp crash fix (looped buffers); version synced in `app.json`, Gradle, Xcode |

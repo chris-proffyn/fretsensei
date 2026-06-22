@@ -27,6 +27,7 @@ const REQUIRED_SECTION_TITLES = [
   'Use pentatonic positions',
   'Change what is displayed',
   'Play the notes back',
+  'Use the one-chord vamp',
   'Suggested first practice routine',
   'Current v1 limits',
   'Future updates',

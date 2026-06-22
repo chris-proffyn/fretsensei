@@ -20,5 +20,6 @@ export const DEFAULT_STATE: VisualiserState = {
   playbackDirection: 'up-down',
   repeatPlayback: false,
   playbackState: 'idle',
+  vampPlaybackState: 'idle',
   layoutConfig: DEFAULT_LAYOUT_CONFIG,
 };

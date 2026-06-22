@@ -8,10 +8,11 @@ import {
   type PlaybackNote,
   type PlaybackOptions,
 } from '@fretsensei/utils';
-import { AudioContext, type GainNode } from 'react-native-audio-api';
+import { type AudioContext, type GainNode } from 'react-native-audio-api';
 import { playCountInClick } from './play-count-in-click';
 import { playLegacySynthNote } from './legacy-synth-note';
 import { playKarplusStrongNote } from './play-karplus-strong-note';
+import { getSharedMobileAudioContext } from './shared-mobile-audio-context';
 
 type TimeoutId = ReturnType<typeof setTimeout>;
 type ScheduledSource = {
@@ -20,7 +21,6 @@ type ScheduledSource = {
 };
 
 export function createWebAudioPlaybackEngine(): PlaybackEngine {
-  let audioContext: AudioContext | null = null;
   let masterGain: GainNode | null = null;
   let timeoutIds: TimeoutId[] = [];
   let activeSources: ScheduledSource[] = [];
@@ -30,11 +30,7 @@ export function createWebAudioPlaybackEngine(): PlaybackEngine {
   let activePlayToken = 0;
 
   function getAudioContext(): AudioContext {
-    if (!audioContext) {
-      audioContext = new AudioContext();
-    }
-
-    return audioContext;
+    return getSharedMobileAudioContext();
   }
 
   function getMasterGain(context: AudioContext): GainNode {
@@ -66,12 +62,12 @@ export function createWebAudioPlaybackEngine(): PlaybackEngine {
   }
 
   function stopActiveSources() {
-    if (!audioContext) {
-      activeSources = [];
+    if (activeSources.length === 0) {
       return;
     }
 
-    const now = audioContext.currentTime;
+    const context = getAudioContext();
+    const now = context.currentTime;
 
     activeSources.forEach((source) => {
       try {
@@ -294,10 +290,6 @@ export function createWebAudioPlaybackEngine(): PlaybackEngine {
       callbacks?.onStopped?.();
 
       masterGain = null;
-      if (audioContext) {
-        void audioContext.close();
-        audioContext = null;
-      }
     },
   };
 }

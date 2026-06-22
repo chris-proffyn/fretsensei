@@ -27,8 +27,10 @@ jest.mock('react-native-audio-api', () => {
     createBufferSource = jest.fn(() => {
       const source = {
         buffer: null,
+        loop: false,
         onended: null as (() => void) | null,
         connect: jest.fn(),
+        disconnect: jest.fn(),
         start: jest.fn(),
         stop: jest.fn(),
       };

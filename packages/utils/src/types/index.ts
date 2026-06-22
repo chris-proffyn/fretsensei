@@ -73,6 +73,8 @@ export type PlaybackDirection = 'up' | 'down' | 'up-down';
 
 export type PlaybackState = 'idle' | 'playing';
 
+export type VampPlaybackState = 'idle' | 'playing';
+
 export type PositionClassification = 'in-position' | 'out-of-position' | 'extended';
 
 export type NoteVisualState =
@@ -130,6 +132,7 @@ export interface VisualiserState {
   playbackDirection: PlaybackDirection;
   repeatPlayback: boolean;
   playbackState: PlaybackState;
+  vampPlaybackState: VampPlaybackState;
   layoutConfig: LayoutConfig;
 }
 

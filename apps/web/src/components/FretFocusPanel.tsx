@@ -8,17 +8,20 @@ import {
 import type { Dispatch } from 'react';
 import { useState } from 'react';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
+import type { UseVampControllerReturn } from '../hooks/useVampController';
 import { PanelToggleIcon } from './PanelToggleIcon';
 import { PlaybackControls } from './PlaybackControls';
 import { StatusBanner } from './StatusBanner';
 import { LegendToolbarButton } from './LegendToolbarButton';
 import { ToolbarControls } from './ToolbarControls';
+import { VampControlButton } from './VampControlButton';
 
 interface FretFocusPanelProps {
   state: VisualiserState;
   viewModel: FretboardViewModel;
   dispatch: Dispatch<VisualiserAction>;
   playback: UsePlaybackControllerReturn;
+  vamp?: UseVampControllerReturn;
   isMaximized: boolean;
   onToggleMaximize: () => void;
 }
@@ -28,6 +31,7 @@ export function FretFocusPanel({
   viewModel,
   dispatch,
   playback,
+  vamp,
   isMaximized,
   onToggleMaximize,
 }: FretFocusPanelProps) {
@@ -43,10 +47,14 @@ export function FretFocusPanel({
     ),
     state.extendedPattern,
   );
+  const bannerMessage = vamp?.audioError ?? bpmMessage ?? playbackStatus.message;
 
   return (
     <div className="fret-window-control" data-testid="playback-panel">
-      <StatusBanner status={playbackStatus} bpmMessage={bpmMessage} />
+      <StatusBanner
+        status={playbackStatus}
+        bpmMessage={bannerMessage}
+      />
 
       <div className="playback-toolbar">
         <ToolbarControls
@@ -54,6 +62,14 @@ export function FretFocusPanel({
           viewModel={viewModel}
           dispatch={dispatch}
         />
+
+        {vamp ? (
+          <VampControlButton
+            isPlaying={vamp.isPlaying}
+            dyadLabel={vamp.dyad.displayLabel}
+            onToggle={vamp.toggleVamp}
+          />
+        ) : null}
 
         <PlaybackControls
           state={state}

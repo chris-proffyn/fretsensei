@@ -2,6 +2,7 @@ import type { FretboardViewModel, VisualiserAction, VisualiserState } from '@fre
 import type { Dispatch } from 'react';
 import { useEffect, useState } from 'react';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
+import type { UseVampControllerReturn } from '../hooks/useVampController';
 import { FretboardSection } from './FretboardSection';
 import { FretFocusPanel } from './FretFocusPanel';
 import { HeroHeader } from './HeroHeader';
@@ -14,6 +15,7 @@ interface VisualiserScreenProps {
   viewModel: FretboardViewModel;
   dispatch: Dispatch<VisualiserAction>;
   playback: UsePlaybackControllerReturn;
+  vamp?: UseVampControllerReturn;
 }
 
 export function VisualiserScreen({
@@ -21,6 +23,7 @@ export function VisualiserScreen({
   viewModel,
   dispatch,
   playback,
+  vamp,
 }: VisualiserScreenProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fretboardMaximized, setFretboardMaximized] = useState(false);
@@ -57,6 +60,7 @@ export function VisualiserScreen({
       viewModel={viewModel}
       dispatch={dispatch}
       playback={playback}
+      vamp={vamp}
       isMaximized={fretboardMaximized}
       onToggleMaximize={toggleFretboardMaximize}
     />

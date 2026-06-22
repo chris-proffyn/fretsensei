@@ -7,12 +7,14 @@ describe('navigateHomeFromPractice', () => {
     jest.clearAllMocks();
   });
 
-  it('stops playback, restores portrait, and navigates home', () => {
+  it('stops playback, vamp, restores portrait, and navigates home', () => {
     const stopPlayback = jest.fn();
+    const stopVamp = jest.fn();
 
-    navigateHomeFromPractice(stopPlayback);
+    navigateHomeFromPractice({ stopPlayback, stopVamp });
 
     expect(stopPlayback).toHaveBeenCalledTimes(1);
+    expect(stopVamp).toHaveBeenCalledTimes(1);
     expect(ScreenOrientation.lockAsync).toHaveBeenCalledWith(
       ScreenOrientation.OrientationLock.PORTRAIT_UP,
     );

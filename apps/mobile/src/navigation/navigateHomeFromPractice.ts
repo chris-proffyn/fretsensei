@@ -1,8 +1,17 @@
 import { router } from 'expo-router';
 import { restorePortraitOrientation } from '../hooks/usePracticeOrientation';
 
-export function navigateHomeFromPractice(stopPlayback: () => void) {
+interface NavigateHomeFromPracticeOptions {
+  stopPlayback: () => void;
+  stopVamp?: () => void;
+}
+
+export function navigateHomeFromPractice({
+  stopPlayback,
+  stopVamp,
+}: NavigateHomeFromPracticeOptions) {
   stopPlayback();
+  stopVamp?.();
   void restorePortraitOrientation();
   router.replace('/');
 }

@@ -129,6 +129,30 @@ export const HOW_TO_GUIDE_SECTIONS: GuideSection[] = [
     ],
   },
   {
+    id: 'one-chord-vamp',
+    title: 'Use the one-chord vamp',
+    body: [
+      {
+        type: 'paragraph',
+        text: 'When available in Mode Practice, **Vamp** plays a continuous tonal drone for the selected key. A vamp is not a full chord — it is a simple **root + perfect fifth** dyad (for example C + G in the key of C).',
+      },
+      {
+        type: 'bullets',
+        items: [
+          'The vamp follows the **key** you select, not the mode or scale.',
+          'It drones until you tap **Stop**.',
+          'Changing key while the vamp is playing updates the drone to the new root and fifth.',
+          'Vamp and note-sequence playback cannot run at the same time — starting one stops the other.',
+        ],
+      },
+      {
+        type: 'callout',
+        tone: 'tip',
+        text: 'Use the vamp as a tonal centre while you explore modes and positions on the fretboard. Use **Play** when you want to hear the visible notes in order instead.',
+      },
+    ],
+  },
+  {
     id: 'first-practice-routine',
     title: 'Suggested first practice routine',
     body: [
@@ -165,7 +189,7 @@ export const HOW_TO_GUIDE_SECTIONS: GuideSection[] = [
       {
         type: 'callout',
         tone: 'info',
-        text: 'Future versions may add structured practice, saved progress, fretboard drills, vamps, chord progressions, and assessment tools.',
+        text: 'Future versions may add structured practice, saved progress, fretboard drills, chord progressions, rhythmic vamps, and assessment tools.',
       },
     ],
   },

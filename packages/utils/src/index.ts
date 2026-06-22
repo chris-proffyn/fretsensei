@@ -12,6 +12,14 @@ export * from './constants/content/home-content';
 export * from './constants/content/how-to-guide';
 export * from './constants/content/guide-access';
 
+export * from './features/feature-flag-ids';
+export * from './features/parse-build-time-flag';
+export * from './features/feature-flags';
+
+export * from './vamp/vamp-types';
+export * from './vamp/vamp-notes';
+export * from './vamp/vamp-display';
+
 export * from './music-theory/note';
 export * from './music-theory/scale';
 export * from './music-theory/key';

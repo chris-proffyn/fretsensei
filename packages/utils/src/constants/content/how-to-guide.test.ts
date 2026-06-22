@@ -10,6 +10,7 @@ const REQUIRED_SECTION_IDS = [
   'pentatonic-positions',
   'display-options',
   'playback',
+  'one-chord-vamp',
   'first-practice-routine',
   'v1-limits',
   'future-updates',
@@ -39,6 +40,7 @@ describe('how-to guide content', () => {
     expect(titles.some((title) => title.includes('pentatonic'))).toBe(true);
     expect(titles.some((title) => title.includes('display'))).toBe(true);
     expect(titles.some((title) => title.includes('play'))).toBe(true);
+    expect(titles.some((title) => title.includes('vamp'))).toBe(true);
     expect(titles.some((title) => title.includes('limit'))).toBe(true);
   });
 

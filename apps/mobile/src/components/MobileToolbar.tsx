@@ -9,6 +9,7 @@ import type { Dispatch } from 'react';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { UsePlaybackControllerReturn } from '../hooks/usePlaybackController';
+import type { UseVampControllerReturn } from '../hooks/useVampController';
 import { navigateHomeFromPractice } from '../navigation/navigateHomeFromPractice';
 import { colors } from '../theme/tokens';
 import { LegendToolbarButton } from './LegendToolbarButton';
@@ -16,12 +17,14 @@ import { PracticeNavBar } from './navigation/PracticeNavBar';
 import { PlaybackControls } from './PlaybackControls';
 import { StatusBanner } from './StatusBanner';
 import { ToolbarControls } from './ToolbarControls';
+import { VampControlButton } from './VampControlButton';
 
 interface MobileToolbarProps {
   state: VisualiserState;
   viewModel: FretboardViewModel;
   dispatch: Dispatch<VisualiserAction>;
   playback: UsePlaybackControllerReturn;
+  vamp?: UseVampControllerReturn;
 }
 
 export function MobileToolbar({
@@ -29,6 +32,7 @@ export function MobileToolbar({
   viewModel,
   dispatch,
   playback,
+  vamp,
 }: MobileToolbarProps) {
   const [bpmMessage, setBpmMessage] = useState<string | null>(null);
   const playbackStatus = getPlaybackStatus(
@@ -42,11 +46,14 @@ export function MobileToolbar({
     ),
     state.extendedPattern,
   );
-  const bannerMessage = bpmMessage ?? playbackStatus.message;
+  const bannerMessage = vamp?.audioError ?? bpmMessage ?? playbackStatus.message;
 
   const handleGoHome = useCallback(() => {
-    navigateHomeFromPractice(playback.stopPlayback);
-  }, [playback.stopPlayback]);
+    navigateHomeFromPractice({
+      stopPlayback: playback.stopPlayback,
+      stopVamp: () => dispatch({ type: 'stopVamp' }),
+    });
+  }, [dispatch, playback.stopPlayback]);
 
   return (
     <View style={styles.wrapper}>
@@ -56,6 +63,14 @@ export function MobileToolbar({
           viewModel={viewModel}
           dispatch={dispatch}
         />
+
+        {vamp ? (
+          <VampControlButton
+            isPlaying={vamp.isPlaying}
+            dyadLabel={vamp.dyad.displayLabel}
+            onToggle={vamp.toggleVamp}
+          />
+        ) : null}
 
         <PlaybackControls
           compact
@@ -74,7 +89,7 @@ export function MobileToolbar({
       </View>
 
       {bannerMessage ? (
-        <StatusBanner status={playbackStatus} bpmMessage={bpmMessage} />
+        <StatusBanner status={playbackStatus} bpmMessage={bannerMessage} />
       ) : null}
     </View>
   );

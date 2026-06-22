@@ -34,6 +34,9 @@ export type VisualiserAction =
   | { type: 'setPlaybackDirection'; direction: PlaybackDirection }
   | { type: 'toggleRepeatPlayback'; enabled: boolean }
   | { type: 'setPlaybackState'; playbackState: PlaybackState }
+  | { type: 'startVamp' }
+  | { type: 'stopVamp' }
+  | { type: 'toggleVamp' }
   | {
       type: 'updatePentatonicPositionWindow';
       modeId: string;
@@ -173,7 +176,32 @@ export function visualiserReducer(
       };
       break;
     case 'setPlaybackState':
-      nextState = { ...state, playbackState: action.playbackState };
+      nextState = {
+        ...state,
+        playbackState: action.playbackState,
+        vampPlaybackState:
+          action.playbackState === 'playing' ? 'idle' : state.vampPlaybackState,
+      };
+      break;
+    case 'startVamp':
+      nextState = {
+        ...state,
+        playbackState: 'idle',
+        vampPlaybackState: 'playing',
+      };
+      break;
+    case 'stopVamp':
+      nextState = {
+        ...state,
+        vampPlaybackState: 'idle',
+      };
+      break;
+    case 'toggleVamp':
+      nextState = {
+        ...state,
+        playbackState: 'idle',
+        vampPlaybackState: state.vampPlaybackState === 'playing' ? 'idle' : 'playing',
+      };
       break;
     case 'updatePentatonicPositionWindow': {
       const windows = cloneLayoutConfig(state.layoutConfig).pentatonicPositionWindows;
@@ -355,7 +383,10 @@ export function visualiserReducer(
   if (
     normalized.playbackState === 'playing' &&
     action.type !== 'setPlaybackState' &&
-    action.type !== 'toggleRepeatPlayback'
+    action.type !== 'toggleRepeatPlayback' &&
+    action.type !== 'startVamp' &&
+    action.type !== 'stopVamp' &&
+    action.type !== 'toggleVamp'
   ) {
     normalized = { ...normalized, playbackState: 'idle' };
   }
